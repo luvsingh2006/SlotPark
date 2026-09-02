@@ -29,9 +29,14 @@
   font-weight: 500;
 }
 
+.app-header__actions {
+  display: flex;
+  gap: 8px;
+}
+
 .app-main {
   display: grid;
-  grid-template-columns: 1fr 300px;
+  grid-template-columns: 1fr 320px;
   gap: 24px;
   align-items: start;
 }
@@ -42,8 +47,7 @@
   }
 }
 
-.slot-grid-panel,
-.inspector-panel {
+.slot-grid-panel {
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -86,12 +90,12 @@
   gap: 10px;
 }
 
-/* Inspector Controls */
+/* Form Controls */
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
 }
 
 .form-group label {
@@ -128,7 +132,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
@@ -141,6 +145,17 @@
 .btn:hover {
   background-color: #f9fafb;
   border-color: #9ca3af;
+}
+
+.btn--primary {
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+.btn--primary:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
 }
 
 .btn--small {

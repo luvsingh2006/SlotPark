@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ParkingSlot } from './components/ParkingSlot'
+import { SlotInspector } from './components/SlotInspector'
 import './App.css'
 
 const INITIAL_SLOTS = [
@@ -68,13 +69,34 @@ function App() {
   const selectedSlot = slots.find((s) => s.id === selectedSlotId) || null
 
   const handleSlotClick = (slot) => {
-    setSelectedSlotId(slot.id)
+    setSelectedSlotId((prevId) => (prevId === slot.id ? null : slot.id))
   }
 
   const updateSelectedSlot = (updates) => {
     setSlots((prevSlots) =>
       prevSlots.map((s) => (s.id === selectedSlotId ? { ...s, ...updates } : s))
     )
+  }
+
+  const handleDeleteSlot = (slotId) => {
+    setSlots((prevSlots) => prevSlots.filter((s) => s.id !== slotId))
+    if (selectedSlotId === slotId) {
+      setSelectedSlotId(null)
+    }
+  }
+
+  const handleAddSlot = () => {
+    const nextIndex = slots.length + 1
+    const newSlot = {
+      id: `slot-${Date.now()}`,
+      label: `A-${String(nextIndex).padStart(2, '0')}`,
+      vehicleType: 'car',
+      status: 'available',
+      section: 'Zone A',
+      rotation: 0,
+    }
+    setSlots((prev) => [...prev, newSlot])
+    setSelectedSlotId(newSlot.id)
   }
 
   const toggleSlotStatus = (slotId) => {
@@ -96,15 +118,22 @@ function App() {
       <header className="app-header">
         <div className="app-header__title">
           <h1>SlotPark</h1>
-          <span className="app-header__subtitle">Core Slot Components</span>
+          <span className="app-header__subtitle">Core Slot Components & State</span>
+        </div>
+        <div className="app-header__actions">
+          <button type="button" className="btn btn--primary" onClick={handleAddSlot}>
+            Add Slot
+          </button>
         </div>
       </header>
 
       <main className="app-main">
         <section className="slot-grid-panel">
           <div className="panel-header">
-            <h2>Parking Slots</h2>
-            <span className="panel-hint">Click a slot to select it or edit its state</span>
+            <div>
+              <h2>Parking Slots ({slots.length})</h2>
+              <span className="panel-hint">Select a slot to edit or cycle state directly</span>
+            </div>
           </div>
 
           <div className="slots-container">
@@ -136,81 +165,12 @@ function App() {
           </div>
         </section>
 
-        {selectedSlot && (
-          <aside className="inspector-panel">
-            <div className="panel-header">
-              <h2>Slot Inspector</h2>
-              <span className="panel-hint">{selectedSlot.id}</span>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="slot-label">Label</label>
-              <input
-                id="slot-label"
-                type="text"
-                className="form-input"
-                value={selectedSlot.label}
-                onChange={(e) => updateSelectedSlot({ label: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="slot-vehicle">Vehicle Type</label>
-              <select
-                id="slot-vehicle"
-                className="form-select"
-                value={selectedSlot.vehicleType}
-                onChange={(e) => updateSelectedSlot({ vehicleType: e.target.value })}
-              >
-                <option value="car">Car</option>
-                <option value="ev">EV</option>
-                <option value="bike">Motorcycle / Bike</option>
-                <option value="truck">Truck / Cargo</option>
-                <option value="accessible">Accessible</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="slot-status">Status</label>
-              <select
-                id="slot-status"
-                className="form-select"
-                value={selectedSlot.status}
-                onChange={(e) => updateSelectedSlot({ status: e.target.value })}
-              >
-                <option value="available">Available</option>
-                <option value="occupied">Occupied</option>
-                <option value="reserved">Reserved</option>
-                <option value="disabled">Disabled</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="slot-section">Section</label>
-              <input
-                id="slot-section"
-                type="text"
-                className="form-input"
-                value={selectedSlot.section || ''}
-                onChange={(e) => updateSelectedSlot({ section: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="slot-rotation">Rotation ({selectedSlot.rotation || 0}°)</label>
-              <input
-                id="slot-rotation"
-                type="range"
-                min="0"
-                max="360"
-                step="15"
-                className="form-range"
-                value={selectedSlot.rotation || 0}
-                onChange={(e) => updateSelectedSlot({ rotation: Number(e.target.value) })}
-              />
-            </div>
-          </aside>
-        )}
+        <SlotInspector
+          slot={selectedSlot}
+          onUpdate={updateSelectedSlot}
+          onDeselect={() => setSelectedSlotId(null)}
+          onDelete={handleDeleteSlot}
+        />
       </main>
     </div>
   )

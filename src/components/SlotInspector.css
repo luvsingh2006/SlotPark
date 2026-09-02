@@ -1,0 +1,102 @@
+.slot-inspector {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.slot-inspector--empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #9ca3af;
+}
+
+.slot-inspector__placeholder h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.slot-inspector__placeholder p {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #9ca3af;
+}
+
+.slot-inspector__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.slot-inspector__header h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.slot-inspector__id {
+  font-size: 11px;
+  color: #9ca3af;
+  font-family: var(--font-mono);
+}
+
+.slot-inspector__body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.slot-inspector__footer {
+  padding: 12px 16px 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.form-group__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preset-buttons {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.preset-buttons .btn {
+  flex: 1;
+}
+
+.btn--active {
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+.btn--active:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.btn--danger {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.btn--danger:hover {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.btn--full {
+  width: 100%;
+}

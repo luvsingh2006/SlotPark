@@ -13,6 +13,7 @@ export function CanvasViewport({
   zoom = 1,
   pan = { x: 40, y: 40 },
   onTransformChange,
+  activeTool = 'select',
 }) {
   const containerRef = useRef(null)
   const isPanningRef = useRef(false)
@@ -236,7 +237,7 @@ export function CanvasViewport({
   return (
     <div
       ref={containerRef}
-      className={`canvas-viewport ${isPanningState ? 'canvas-viewport--panning' : ''}`}
+      className={`canvas-viewport ${isPanningState ? 'canvas-viewport--panning' : ''} canvas-viewport--${activeTool}`}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}

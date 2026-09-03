@@ -100,3 +100,104 @@ export function AccessibleIcon({ className = '', size = 20 }) {
     </svg>
   )
 }
+
+export function PointerIcon({ className = '', size = 18 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="m3 3 7 18 3-7 7-3L3 3z" />
+    </svg>
+  )
+}
+
+export function EraserIcon({ className = '', size = 18 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
+      <path d="M22 21H7" />
+      <path d="m5 11 9 9" />
+    </svg>
+  )
+}
+
+export function RoadIcon({ className = '', size = 18 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M4 19 8 5" />
+      <path d="m16 5 4 14" />
+      <path d="M12 8v2" />
+      <path d="M12 14v2" />
+    </svg>
+  )
+}
+
+export function WallIcon({ className = '', size = 18 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect width="18" height="18" x="3" y="3" rx="2" />
+      <path d="M3 9h18" />
+      <path d="M3 15h18" />
+      <path d="M9 9v6" />
+      <path d="M15 3v6" />
+      <path d="M15 15v6" />
+    </svg>
+  )
+}
+
+export function PillarIcon({ className = '', size = 18 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect width="12" height="12" x="6" y="6" rx="1" />
+      <circle cx="12" cy="12" r="2" />
+    </svg>
+  )
+}

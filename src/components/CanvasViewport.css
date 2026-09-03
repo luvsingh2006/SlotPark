@@ -14,6 +14,14 @@
   cursor: grabbing;
 }
 
+.canvas-viewport--eraser .canvas-object {
+  cursor: crosshair;
+}
+
+.canvas-viewport:not(.canvas-viewport--select):not(.canvas-viewport--eraser) {
+  cursor: crosshair;
+}
+
 .canvas-surface {
   position: absolute;
   top: 0;

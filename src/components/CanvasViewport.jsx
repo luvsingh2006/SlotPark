@@ -6,6 +6,7 @@ import {
   DEFAULT_CANVAS_CONFIG,
   DEFAULT_DIMENSIONS,
 } from '../utils/layoutModels'
+import { snapPointToGrid, DEFAULT_GRID_SIZE } from '../utils/gridUtils'
 import './CanvasViewport.css'
 
 export function CanvasViewport({
@@ -20,6 +21,8 @@ export function CanvasViewport({
   pan = { x: 40, y: 40 },
   onTransformChange,
   activeTool = 'select',
+  snapToGrid = true,
+  gridSize = DEFAULT_GRID_SIZE,
 }) {
   const containerRef = useRef(null)
   const isPanningRef = useRef(false)
@@ -196,9 +199,12 @@ export function CanvasViewport({
   const handleMouseMove = (e) => {
     const rect = containerRef.current?.getBoundingClientRect()
     if (rect && isPlacing) {
-      const mouseCanvasX = (e.clientX - rect.left - pan.x) / zoom
-      const mouseCanvasY = (e.clientY - rect.top - pan.y) / zoom
-      setCursorCanvasPos({ x: mouseCanvasX, y: mouseCanvasY })
+      const rawCanvasX = (e.clientX - rect.left - pan.x) / zoom
+      const rawCanvasY = (e.clientY - rect.top - pan.y) / zoom
+      const targetPos = snapToGrid
+        ? snapPointToGrid(rawCanvasX, rawCanvasY, gridSize)
+        : { x: Math.round(rawCanvasX), y: Math.round(rawCanvasY) }
+      setCursorCanvasPos(targetPos)
     }
 
     if (!isPanningRef.current || !onTransformChange) return

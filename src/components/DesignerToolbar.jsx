@@ -9,6 +9,7 @@ import {
   RoadIcon,
   WallIcon,
   PillarIcon,
+  SnapIcon,
 } from './Icons'
 import { OBJECT_TYPES } from '../utils/layoutModels'
 import './DesignerToolbar.css'
@@ -35,6 +36,9 @@ export function DesignerToolbar({
   activeTool = 'select',
   onSelectTool,
   totalSlots = 0,
+  snapToGrid = true,
+  onToggleSnap,
+  gridSize = 20,
 }) {
   return (
     <div className="designer-toolbar" role="toolbar" aria-label="Layout designer tools">
@@ -100,6 +104,20 @@ export function DesignerToolbar({
             </button>
           )
         })}
+      </div>
+
+      <div className="designer-toolbar__divider" />
+
+      <div className="designer-toolbar__group">
+        <button
+          type="button"
+          className={`tool-btn ${snapToGrid ? 'tool-btn--snap-active' : ''}`}
+          onClick={onToggleSnap}
+          title="Toggle Grid Snapping (G)"
+        >
+          <SnapIcon size={16} />
+          <span className="tool-btn__text">Snap ({gridSize}px)</span>
+        </button>
       </div>
 
       <div className="designer-toolbar__stats">

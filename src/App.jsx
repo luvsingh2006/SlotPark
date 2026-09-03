@@ -10,12 +10,14 @@ import {
   getPlacedObjectPosition,
   generateNextLabel,
 } from './utils/layoutModels'
+import { snapPointToGrid, DEFAULT_GRID_SIZE } from './utils/gridUtils'
 import './App.css'
 
 function App() {
   const [objects, setObjects] = useState(INITIAL_LAYOUT_OBJECTS)
   const [selectedId, setSelectedId] = useState('slot-a01')
   const [activeTool, setActiveTool] = useState('select')
+  const [snapToGrid, setSnapToGrid] = useState(true)
   const [transform, setTransform] = useState({ zoom: 1, pan: { x: 40, y: 40 } })
 
   const selectedObject = objects.find((obj) => obj.id === selectedId) || null
@@ -30,6 +32,8 @@ function App() {
         setActiveTool('select')
       } else if (e.key.toLowerCase() === 'e') {
         setActiveTool('eraser')
+      } else if (e.key.toLowerCase() === 'g') {
+        setSnapToGrid((prev) => !prev)
       } else if (e.key === 'Escape') {
         setActiveTool('select')
         setSelectedId(null)
@@ -78,7 +82,8 @@ function App() {
   }
 
   const handlePlaceObject = (toolType, clickX, clickY) => {
-    const pos = getPlacedObjectPosition(toolType, clickX, clickY)
+    const rawPos = getPlacedObjectPosition(toolType, clickX, clickY)
+    const pos = snapToGrid ? snapPointToGrid(rawPos.x, rawPos.y, DEFAULT_GRID_SIZE) : rawPos
     const label = generateNextLabel(toolType, objects)
     const newObj = createLayoutObject(toolType, pos.x, pos.y, { label })
     setObjects((prev) => [...prev, newObj])
@@ -103,6 +108,9 @@ function App() {
         activeTool={activeTool}
         onSelectTool={setActiveTool}
         totalSlots={totalSlots}
+        snapToGrid={snapToGrid}
+        onToggleSnap={() => setSnapToGrid((prev) => !prev)}
+        gridSize={DEFAULT_GRID_SIZE}
       />
 
       <main className="app-main">
@@ -130,6 +138,8 @@ function App() {
             pan={transform.pan}
             onTransformChange={setTransform}
             activeTool={activeTool}
+            snapToGrid={snapToGrid}
+            gridSize={DEFAULT_GRID_SIZE}
           />
         </section>
 

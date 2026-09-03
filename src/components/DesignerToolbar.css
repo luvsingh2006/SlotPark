@@ -67,6 +67,19 @@
   color: #ffffff;
 }
 
+.tool-btn--snap-active {
+  background-color: #f0fdf4;
+  border-color: #86efac;
+  color: #166534;
+  font-weight: 600;
+}
+
+.tool-btn--snap-active:hover {
+  background-color: #dcfce7;
+  border-color: #4ade80;
+  color: #14532d;
+}
+
 .tool-btn__text {
   white-space: nowrap;
 }

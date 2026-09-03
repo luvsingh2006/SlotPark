@@ -37,12 +37,14 @@ function App() {
       } else if (e.key === 'Escape') {
         setActiveTool('select')
         setSelectedId(null)
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
+        handleDeleteObject(selectedId)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [selectedId])
 
   const handleSelectObject = (id) => {
     if (activeTool === 'eraser') {

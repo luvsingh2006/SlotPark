@@ -331,6 +331,26 @@ export function CanvasViewport({
               ) : (
                 renderStructuralElement(obj, isSelected)
               )}
+
+              {isSelected && (
+                <div className="canvas-selection-box" aria-hidden="true">
+                  <span className="canvas-selection-handle canvas-selection-handle--nw" />
+                  <span className="canvas-selection-handle canvas-selection-handle--ne" />
+                  <span className="canvas-selection-handle canvas-selection-handle--se" />
+                  <span className="canvas-selection-handle canvas-selection-handle--sw" />
+                  <div className="canvas-selection-rotate-anchor">
+                    <span className="canvas-selection-rotate-stem" />
+                    <span className="canvas-selection-rotate-handle" />
+                  </div>
+                  <div className="canvas-selection-badge">
+                    <span className="canvas-selection-badge__title">{obj.label || obj.type}</span>
+                    <span className="canvas-selection-badge__dim">{obj.width}×{obj.height}</span>
+                    {obj.rotation ? (
+                      <span className="canvas-selection-badge__rot">{obj.rotation}°</span>
+                    ) : null}
+                  </div>
+                </div>
+              )}
             </div>
           )
         })}

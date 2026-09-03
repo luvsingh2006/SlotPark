@@ -20,7 +20,85 @@ export function CanvasViewport({
 
   const [isPanningState, setIsPanningState] = useState(false)
 
-  // Wheel zoom handler
+  // Zoom towards viewport center or target position
+  const setZoomLevel = useCallback(
+    (targetZoom) => {
+      if (!onTransformChange) return
+      const clampedZoom = Math.min(
+        DEFAULT_CANVAS_CONFIG.maxZoom,
+        Math.max(DEFAULT_CANVAS_CONFIG.minZoom, Number(targetZoom.toFixed(2)))
+      )
+      if (clampedZoom === zoom) return
+
+      const rect = containerRef.current?.getBoundingClientRect()
+      const centerX = rect ? rect.width / 2 : 400
+      const centerY = rect ? rect.height / 2 : 300
+
+      const scaleRatio = clampedZoom / zoom
+      const newPanX = Math.round(centerX - (centerX - pan.x) * scaleRatio)
+      const newPanY = Math.round(centerY - (centerY - pan.y) * scaleRatio)
+
+      onTransformChange({
+        zoom: clampedZoom,
+        pan: { x: newPanX, y: newPanY },
+      })
+    },
+    [zoom, pan, onTransformChange]
+  )
+
+  const handleZoomIn = () => setZoomLevel(zoom + 0.15)
+  const handleZoomOut = () => setZoomLevel(zoom - 0.15)
+
+  const handleResetView = () => {
+    if (onTransformChange) {
+      onTransformChange({
+        zoom: 1,
+        pan: { x: 40, y: 40 },
+      })
+    }
+  }
+
+  const handleFitView = useCallback(() => {
+    if (!onTransformChange || objects.length === 0) return
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    let minX = Infinity
+    let minY = Infinity
+    let maxX = -Infinity
+    let maxY = -Infinity
+
+    objects.forEach((obj) => {
+      minX = Math.min(minX, obj.x)
+      minY = Math.min(minY, obj.y)
+      maxX = Math.max(maxX, obj.x + obj.width)
+      maxY = Math.max(maxY, obj.y + obj.height)
+    })
+
+    const padding = 60
+    const contentWidth = Math.max(maxX - minX + padding * 2, 200)
+    const contentHeight = Math.max(maxY - minY + padding * 2, 200)
+
+    const scaleX = rect.width / contentWidth
+    const scaleY = rect.height / contentHeight
+    const targetZoom = Math.min(
+      DEFAULT_CANVAS_CONFIG.maxZoom,
+      Math.max(DEFAULT_CANVAS_CONFIG.minZoom, Number(Math.min(scaleX, scaleY).toFixed(2)))
+    )
+
+    const contentCenterX = (minX + maxX) / 2
+    const contentCenterY = (minY + maxY) / 2
+
+    const newPanX = Math.round(rect.width / 2 - contentCenterX * targetZoom)
+    const newPanY = Math.round(rect.height / 2 - contentCenterY * targetZoom)
+
+    onTransformChange({
+      zoom: targetZoom,
+      pan: { x: newPanX, y: newPanY },
+    })
+  }, [objects, onTransformChange])
+
+  // Mouse wheel zoom
   const handleWheel = useCallback(
     (e) => {
       e.preventDefault()
@@ -34,7 +112,6 @@ export function CanvasViewport({
 
       if (newZoom === zoom) return
 
-      // Zoom towards mouse position
       const rect = containerRef.current?.getBoundingClientRect()
       if (!rect) return
 
@@ -63,13 +140,34 @@ export function CanvasViewport({
     }
   }, [handleWheel])
 
+  // Keyboard navigation shortcuts (+, -, 0, f)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return
+
+      if (e.key === '=' || e.key === '+') {
+        e.preventDefault()
+        handleZoomIn()
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault()
+        handleZoomOut()
+      } else if (e.key === '0') {
+        e.preventDefault()
+        handleResetView()
+      } else if (e.key.toLowerCase() === 'f') {
+        e.preventDefault()
+        handleFitView()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleFitView, zoom, pan])
+
   // Mouse down on canvas background -> begin panning
   const handleMouseDown = (e) => {
-    // Only primary mouse button or middle click initiates pan
     if (e.button !== 0 && e.button !== 1) return
-
-    // Don't pan if clicking an interactive object
-    if (e.target.closest('.canvas-object')) return
+    if (e.target.closest('.canvas-object') || e.target.closest('.canvas-viewport__controls')) return
 
     isPanningRef.current = true
     setIsPanningState(true)
@@ -99,7 +197,7 @@ export function CanvasViewport({
   }
 
   const handleCanvasSurfaceClick = (e) => {
-    if (e.target.closest('.canvas-object')) return
+    if (e.target.closest('.canvas-object') || e.target.closest('.canvas-viewport__controls')) return
     if (onCanvasClick) {
       onCanvasClick(e)
     }
@@ -196,8 +294,42 @@ export function CanvasViewport({
         })}
       </div>
 
-      <div className="canvas-viewport__indicator">
-        <span>{Math.round(zoom * 100)}%</span>
+      {/* Viewport Floating Action Controls */}
+      <div className="canvas-viewport__controls">
+        <button
+          type="button"
+          className="canvas-control-btn"
+          onClick={handleZoomIn}
+          title="Zoom In (+)"
+        >
+          +
+        </button>
+        <span className="canvas-control-level">{Math.round(zoom * 100)}%</span>
+        <button
+          type="button"
+          className="canvas-control-btn"
+          onClick={handleZoomOut}
+          title="Zoom Out (-)"
+        >
+          −
+        </button>
+        <div className="canvas-control-divider" />
+        <button
+          type="button"
+          className="canvas-control-btn canvas-control-btn--text"
+          onClick={handleResetView}
+          title="Reset View 100% (0)"
+        >
+          1:1
+        </button>
+        <button
+          type="button"
+          className="canvas-control-btn canvas-control-btn--text"
+          onClick={handleFitView}
+          title="Fit Objects to Viewport (F)"
+        >
+          Fit
+        </button>
       </div>
     </div>
   )

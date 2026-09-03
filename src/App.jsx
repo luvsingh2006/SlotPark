@@ -18,7 +18,16 @@ function App() {
   const [selectedId, setSelectedId] = useState('slot-a01')
   const [activeTool, setActiveTool] = useState('select')
   const [snapToGrid, setSnapToGrid] = useState(true)
+  const [gridMode, setGridMode] = useState('dots')
   const [transform, setTransform] = useState({ zoom: 1, pan: { x: 40, y: 40 } })
+
+  const handleToggleGrid = () => {
+    setGridMode((prev) => {
+      if (prev === 'dots') return 'lines'
+      if (prev === 'lines') return 'off'
+      return 'dots'
+    })
+  }
 
   const selectedObject = objects.find((obj) => obj.id === selectedId) || null
   const isSelectedSlot = selectedObject && isSlotType(selectedObject.type)
@@ -142,6 +151,9 @@ function App() {
             activeTool={activeTool}
             snapToGrid={snapToGrid}
             gridSize={DEFAULT_GRID_SIZE}
+            showGrid={gridMode !== 'off'}
+            gridStyle={gridMode === 'lines' ? 'lines' : 'dots'}
+            onToggleGrid={handleToggleGrid}
           />
         </section>
 

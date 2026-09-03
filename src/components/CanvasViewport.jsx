@@ -23,6 +23,9 @@ export function CanvasViewport({
   activeTool = 'select',
   snapToGrid = true,
   gridSize = DEFAULT_GRID_SIZE,
+  showGrid = true,
+  gridStyle = 'dots',
+  onToggleGrid,
 }) {
   const containerRef = useRef(null)
   const isPanningRef = useRef(false)
@@ -171,6 +174,9 @@ export function CanvasViewport({
       } else if (e.key.toLowerCase() === 'f') {
         e.preventDefault()
         handleFitView()
+      } else if (e.shiftKey && e.key.toLowerCase() === 'g') {
+        e.preventDefault()
+        if (onToggleGrid) onToggleGrid()
       }
     }
 
@@ -286,7 +292,7 @@ export function CanvasViewport({
       onClick={handleCanvasSurfaceClick}
     >
       <div
-        className="canvas-surface"
+        className={`canvas-surface ${showGrid ? `canvas-surface--grid-${gridStyle}` : ''}`}
         style={{
           width: `${canvasWidth}px`,
           height: `${canvasHeight}px`,
@@ -407,6 +413,14 @@ export function CanvasViewport({
           title="Fit Objects to Viewport (F)"
         >
           Fit
+        </button>
+        <button
+          type="button"
+          className={`canvas-control-btn canvas-control-btn--text ${showGrid ? 'canvas-control-btn--active' : ''}`}
+          onClick={onToggleGrid}
+          title={`Grid Pattern: ${showGrid ? gridStyle : 'hidden'} (Shift+G)`}
+        >
+          Grid
         </button>
       </div>
     </div>

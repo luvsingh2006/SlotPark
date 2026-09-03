@@ -58,17 +58,49 @@ export function getVehicleTypeFromObjectType(type) {
   }
 }
 
-let objectCounter = 10
+export function generateNextLabel(type, existingObjects = []) {
+  const matching = existingObjects.filter((o) => o.type === type)
+  const count = matching.length + 1
+  const countStr = String(count).padStart(2, '0')
+
+  switch (type) {
+    case OBJECT_TYPES.PARKING:
+      return `A-${countStr}`
+    case OBJECT_TYPES.EV:
+      return `EV-${countStr}`
+    case OBJECT_TYPES.ACCESSIBLE:
+      return `ACC-${countStr}`
+    case OBJECT_TYPES.BIKE:
+      return `B-${countStr}`
+    case OBJECT_TYPES.TRUCK:
+      return `T-${countStr}`
+    case OBJECT_TYPES.ROAD:
+      return `Lane ${count}`
+    case OBJECT_TYPES.WALL:
+      return `Wall ${count}`
+    case OBJECT_TYPES.PILLAR:
+      return `P-${count}`
+    case OBJECT_TYPES.ENTRY:
+      return `Entry ${count}`
+    case OBJECT_TYPES.EXIT:
+      return `Exit ${count}`
+    default:
+      return isSlotType(type) ? `S-${countStr}` : `Object ${count}`
+  }
+}
+
+export function getPlacedObjectPosition(type, clickX, clickY) {
+  const dim = DEFAULT_DIMENSIONS[type] || { width: 80, height: 120 }
+  return {
+    x: Math.round(clickX - dim.width / 2),
+    y: Math.round(clickY - dim.height / 2),
+  }
+}
 
 export function createLayoutObject(type, x, y, customProps = {}) {
   const dimensions = DEFAULT_DIMENSIONS[type] || { width: 80, height: 120 }
   const isSlot = isSlotType(type)
   const id = `${type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`
-
-  let label = customProps.label
-  if (!label && isSlot) {
-    label = `S-${String(objectCounter++).padStart(2, '0')}`
-  }
 
   return {
     id,
@@ -78,7 +110,7 @@ export function createLayoutObject(type, x, y, customProps = {}) {
     width: dimensions.width,
     height: dimensions.height,
     rotation: 0,
-    label: label || '',
+    label: customProps.label || '',
     section: customProps.section || (isSlot ? 'Main Lot' : ''),
     vehicleType: isSlot ? getVehicleTypeFromObjectType(type) : undefined,
     status: isSlot ? 'available' : undefined,

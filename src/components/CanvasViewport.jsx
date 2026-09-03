@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { ParkingSlot } from './ParkingSlot'
-import { OBJECT_TYPES, isSlotType, DEFAULT_CANVAS_CONFIG } from '../utils/layoutModels'
+import {
+  OBJECT_TYPES,
+  isSlotType,
+  DEFAULT_CANVAS_CONFIG,
+  DEFAULT_DIMENSIONS,
+} from '../utils/layoutModels'
 import './CanvasViewport.css'
 
 export function CanvasViewport({
@@ -8,6 +13,7 @@ export function CanvasViewport({
   selectedObjectId = null,
   onSelectObject,
   onCanvasClick,
+  onPlaceObject,
   canvasWidth = DEFAULT_CANVAS_CONFIG.width,
   canvasHeight = DEFAULT_CANVAS_CONFIG.height,
   zoom = 1,
@@ -20,6 +26,10 @@ export function CanvasViewport({
   const panStartRef = useRef({ x: 0, y: 0 })
 
   const [isPanningState, setIsPanningState] = useState(false)
+  const [cursorCanvasPos, setCursorCanvasPos] = useState(null)
+
+  const isPlacing = activeTool !== 'select' && activeTool !== 'eraser'
+  const activeToolDimensions = isPlacing ? DEFAULT_DIMENSIONS[activeTool] || { width: 80, height: 120 } : null
 
   // Zoom towards viewport center or target position
   const setZoomLevel = useCallback(
@@ -165,10 +175,15 @@ export function CanvasViewport({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleFitView, zoom, pan])
 
-  // Mouse down on canvas background -> begin panning
+  // Mouse down on canvas background -> begin panning if not placing an object
   const handleMouseDown = (e) => {
     if (e.button !== 0 && e.button !== 1) return
-    if (e.target.closest('.canvas-object') || e.target.closest('.canvas-viewport__controls')) return
+    if (e.target.closest('.canvas-viewport__controls')) return
+
+    // If activeTool is a placement tool, do not initiate pan on left-click
+    if (isPlacing && e.button === 0) return
+
+    if (e.target.closest('.canvas-object')) return
 
     isPanningRef.current = true
     setIsPanningState(true)
@@ -179,6 +194,13 @@ export function CanvasViewport({
   }
 
   const handleMouseMove = (e) => {
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (rect && isPlacing) {
+      const mouseCanvasX = (e.clientX - rect.left - pan.x) / zoom
+      const mouseCanvasY = (e.clientY - rect.top - pan.y) / zoom
+      setCursorCanvasPos({ x: mouseCanvasX, y: mouseCanvasY })
+    }
+
     if (!isPanningRef.current || !onTransformChange) return
 
     const nextPan = {
@@ -197,8 +219,21 @@ export function CanvasViewport({
     setIsPanningState(false)
   }
 
+  const handleMouseLeave = () => {
+    isPanningRef.current = false
+    setIsPanningState(false)
+    setCursorCanvasPos(null)
+  }
+
   const handleCanvasSurfaceClick = (e) => {
-    if (e.target.closest('.canvas-object') || e.target.closest('.canvas-viewport__controls')) return
+    if (e.target.closest('.canvas-viewport__controls')) return
+
+    if (isPlacing && onPlaceObject && cursorCanvasPos) {
+      onPlaceObject(activeTool, cursorCanvasPos.x, cursorCanvasPos.y)
+      return
+    }
+
+    if (e.target.closest('.canvas-object')) return
     if (onCanvasClick) {
       onCanvasClick(e)
     }
@@ -241,7 +276,7 @@ export function CanvasViewport({
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
       onClick={handleCanvasSurfaceClick}
     >
       <div
@@ -293,6 +328,22 @@ export function CanvasViewport({
             </div>
           )
         })}
+
+        {/* Ghost Placement Preview */}
+        {isPlacing && cursorCanvasPos && activeToolDimensions && (
+          <div
+            className="canvas-ghost-preview"
+            style={{
+              position: 'absolute',
+              left: `${cursorCanvasPos.x - activeToolDimensions.width / 2}px`,
+              top: `${cursorCanvasPos.y - activeToolDimensions.height / 2}px`,
+              width: `${activeToolDimensions.width}px`,
+              height: `${activeToolDimensions.height}px`,
+            }}
+          >
+            <span className="canvas-ghost-preview__label">{activeTool}</span>
+          </div>
+        )}
       </div>
 
       {/* Viewport Floating Action Controls */}

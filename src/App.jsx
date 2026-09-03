@@ -7,6 +7,8 @@ import {
   OBJECT_TYPES,
   createLayoutObject,
   isSlotType,
+  getPlacedObjectPosition,
+  generateNextLabel,
 } from './utils/layoutModels'
 import './App.css'
 
@@ -75,6 +77,14 @@ function App() {
     setActiveTool('select')
   }
 
+  const handlePlaceObject = (toolType, clickX, clickY) => {
+    const pos = getPlacedObjectPosition(toolType, clickX, clickY)
+    const label = generateNextLabel(toolType, objects)
+    const newObj = createLayoutObject(toolType, pos.x, pos.y, { label })
+    setObjects((prev) => [...prev, newObj])
+    setSelectedId(newObj.id)
+  }
+
   return (
     <div className="app">
       <header className="app-header">
@@ -104,8 +114,8 @@ function App() {
                 {activeTool === 'select'
                   ? 'Drag canvas to pan • Scroll to zoom • Click object to inspect'
                   : activeTool === 'eraser'
-                  ? 'Click any element to erase it'
-                  : `Active tool: ${activeTool}. Placement logic coming next.`}
+                  ? 'Click any element to remove it'
+                  : `Click canvas to place ${activeTool} (Esc to cancel)`}
               </span>
             </div>
           </div>
@@ -115,6 +125,7 @@ function App() {
             selectedObjectId={selectedId}
             onSelectObject={handleSelectObject}
             onCanvasClick={handleCanvasClick}
+            onPlaceObject={handlePlaceObject}
             zoom={transform.zoom}
             pan={transform.pan}
             onTransformChange={setTransform}
@@ -135,7 +146,7 @@ function App() {
               <h3>{selectedObject ? selectedObject.label || selectedObject.type : 'No Object Selected'}</h3>
               <p>
                 {selectedObject
-                  ? `Structural element (${selectedObject.type}).`
+                  ? `${selectedObject.type.toUpperCase()} • ${selectedObject.width}×${selectedObject.height}px`
                   : 'Select any parking space or structural element on the canvas to inspect its properties.'}
               </p>
             </div>

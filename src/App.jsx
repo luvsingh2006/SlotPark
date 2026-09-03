@@ -48,12 +48,15 @@ function App() {
         setSelectedId(null)
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
         handleDeleteObject(selectedId)
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd' && selectedId) {
+        e.preventDefault()
+        handleDuplicateObject(selectedId)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedId])
+  }, [selectedId, objects])
 
   const handleSelectObject = (id) => {
     if (activeTool === 'eraser') {
@@ -80,6 +83,21 @@ function App() {
     if (selectedId === id) {
       setSelectedId(null)
     }
+  }
+
+  const handleDuplicateObject = (id) => {
+    const target = objects.find((o) => o.id === id)
+    if (!target) return
+    const newId = `${target.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+    const duplicated = {
+      ...target,
+      id: newId,
+      x: target.x + 20,
+      y: target.y + 20,
+      label: target.label ? `${target.label} (Copy)` : '',
+    }
+    setObjects((prev) => [...prev, duplicated])
+    setSelectedId(newId)
   }
 
   const handleAddSlot = () => {
@@ -157,25 +175,13 @@ function App() {
           />
         </section>
 
-        {isSelectedSlot ? (
-          <SlotInspector
-            slot={selectedObject}
-            onUpdate={handleUpdateSelectedSlot}
-            onDeselect={() => setSelectedId(null)}
-            onDelete={handleDeleteObject}
-          />
-        ) : (
-          <aside className="slot-inspector slot-inspector--empty">
-            <div className="slot-inspector__placeholder">
-              <h3>{selectedObject ? selectedObject.label || selectedObject.type : 'No Object Selected'}</h3>
-              <p>
-                {selectedObject
-                  ? `${selectedObject.type.toUpperCase()} • ${selectedObject.width}×${selectedObject.height}px`
-                  : 'Select any parking space or structural element on the canvas to inspect its properties.'}
-              </p>
-            </div>
-          </aside>
-        )}
+        <SlotInspector
+          slot={selectedObject}
+          onUpdate={handleUpdateSelectedSlot}
+          onDeselect={() => setSelectedId(null)}
+          onDelete={handleDeleteObject}
+          onDuplicate={handleDuplicateObject}
+        />
       </main>
     </div>
   )

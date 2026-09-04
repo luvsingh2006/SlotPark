@@ -48,3 +48,11 @@ export function clampToBounds(
     y: Math.max(0, Math.min(maxY, Math.round(y))),
   }
 }
+
+/**
+ * Snap a rotation angle (in degrees) to clean step increments (e.g. 15 degrees).
+ */
+export function snapAngle(degrees, step = 15) {
+  const normalized = (degrees % 360 + 360) % 360
+  return (Math.round(normalized / step) * step) % 360
+}

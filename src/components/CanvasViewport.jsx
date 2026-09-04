@@ -6,7 +6,13 @@ import {
   DEFAULT_CANVAS_CONFIG,
   DEFAULT_DIMENSIONS,
 } from '../utils/layoutModels'
-import { snapPointToGrid, snapToGrid, clampToBounds, DEFAULT_GRID_SIZE } from '../utils/gridUtils'
+import {
+  snapPointToGrid,
+  snapToGrid,
+  clampToBounds,
+  snapAngle,
+  DEFAULT_GRID_SIZE,
+} from '../utils/gridUtils'
 import './CanvasViewport.css'
 
 export function CanvasViewport({
@@ -42,8 +48,17 @@ export function CanvasViewport({
     hasMoved: false,
   })
 
+  const isRotatingRef = useRef(false)
+  const rotateTargetRef = useRef({
+    id: null,
+    centerX: 0,
+    centerY: 0,
+  })
+
   const [isPanningState, setIsPanningState] = useState(false)
   const [draggingObjectId, setDraggingObjectId] = useState(null)
+  const [isRotatingState, setIsRotatingState] = useState(false)
+  const [rotatingAngle, setRotatingAngle] = useState(null)
   const [cursorCanvasPos, setCursorCanvasPos] = useState(null)
 
   const isPlacing = activeTool !== 'select' && activeTool !== 'eraser'
@@ -216,8 +231,46 @@ export function CanvasViewport({
     setDraggingObjectId(obj.id)
   }
 
+  // Initiate rotating an object on the canvas
+  const handleRotateMouseDown = (e, obj) => {
+    if (e.button !== 0) return
+    e.stopPropagation()
+
+    isRotatingRef.current = true
+    rotateTargetRef.current = {
+      id: obj.id,
+      centerX: obj.x + obj.width / 2,
+      centerY: obj.y + obj.height / 2,
+    }
+    setIsRotatingState(true)
+    setRotatingAngle(obj.rotation || 0)
+  }
+
   const handleGlobalMouseMove = useCallback(
     (e) => {
+      // Rotation angle calculation
+      if (isRotatingRef.current && onUpdateObject) {
+        const rect = containerRef.current?.getBoundingClientRect()
+        if (!rect) return
+        const mouseCanvasX = (e.clientX - rect.left - pan.x) / zoom
+        const mouseCanvasY = (e.clientY - rect.top - pan.y) / zoom
+
+        const { id, centerX, centerY } = rotateTargetRef.current
+        const dx = mouseCanvasX - centerX
+        const dy = mouseCanvasY - centerY
+
+        const rad = Math.atan2(dy, dx)
+        let deg = Math.round(rad * (180 / Math.PI) + 90)
+        deg = (deg % 360 + 360) % 360
+
+        // Snap to 15-degree steps if snapToGrid is enabled or Shift is held
+        const finalAngle = (snapToGrid || e.shiftKey) ? snapAngle(deg, 15) : deg
+
+        setRotatingAngle(finalAngle)
+        onUpdateObject(id, { rotation: finalAngle })
+        return
+      }
+
       if (!isDraggingObjectRef.current || !onUpdateObject) return
 
       const { id, startMouseX, startMouseY, startObjX, startObjY } = dragObjectRef.current
@@ -249,10 +302,15 @@ export function CanvasViewport({
 
       onUpdateObject(id, { x: clamped.x, y: clamped.y })
     },
-    [zoom, snapToGrid, gridSize, onUpdateObject, objects, canvasWidth, canvasHeight]
+    [zoom, snapToGrid, gridSize, onUpdateObject, objects, canvasWidth, canvasHeight, pan]
   )
 
   const handleGlobalMouseUp = useCallback(() => {
+    if (isRotatingRef.current) {
+      isRotatingRef.current = false
+      setIsRotatingState(false)
+      setRotatingAngle(null)
+    }
     if (isDraggingObjectRef.current) {
       isDraggingObjectRef.current = false
       setDraggingObjectId(null)
@@ -372,7 +430,7 @@ export function CanvasViewport({
   return (
     <div
       ref={containerRef}
-      className={`canvas-viewport ${isPanningState ? 'canvas-viewport--panning' : ''} canvas-viewport--${activeTool}`}
+      className={`canvas-viewport ${isPanningState ? 'canvas-viewport--panning' : ''} ${isRotatingState ? 'canvas-viewport--rotating' : ''} canvas-viewport--${activeTool}`}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -434,14 +492,23 @@ export function CanvasViewport({
               )}
 
               {isSelected && (
-                <div className="canvas-selection-box" aria-hidden="true">
+                <div className="canvas-selection-box">
                   <span className="canvas-selection-handle canvas-selection-handle--nw" />
                   <span className="canvas-selection-handle canvas-selection-handle--ne" />
                   <span className="canvas-selection-handle canvas-selection-handle--se" />
                   <span className="canvas-selection-handle canvas-selection-handle--sw" />
                   <div className="canvas-selection-rotate-anchor">
                     <span className="canvas-selection-rotate-stem" />
-                    <span className="canvas-selection-rotate-handle" />
+                    <span
+                      className="canvas-selection-rotate-handle"
+                      onMouseDown={(e) => handleRotateMouseDown(e, obj)}
+                      title="Drag to Rotate (Hold Shift to snap 15°)"
+                    />
+                    {isRotatingState && rotateTargetRef.current.id === obj.id && (
+                      <div className="canvas-selection-rotate-tooltip">
+                        {rotatingAngle ?? obj.rotation ?? 0}°
+                      </div>
+                    )}
                   </div>
                   <div className="canvas-selection-badge">
                     <span className="canvas-selection-badge__title">{obj.label || obj.type}</span>

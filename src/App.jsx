@@ -102,7 +102,15 @@ function App() {
           DEFAULT_CANVAS_CONFIG.width,
           DEFAULT_CANVAS_CONFIG.height
         )
-        return { ...merged, x: clamped.x, y: clamped.y }
+        const finalObj = { ...merged, x: clamped.x, y: clamped.y }
+        let isDifferent = false
+        for (const key of Object.keys(finalObj)) {
+          if (finalObj[key] !== obj[key]) {
+            isDifferent = true
+            break
+          }
+        }
+        return isDifferent ? finalObj : obj
       })
     )
   }, [])

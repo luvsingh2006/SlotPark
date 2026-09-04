@@ -8,6 +8,8 @@
   border: 1px solid #e5e7eb;
   cursor: grab;
   user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
 
 .canvas-viewport--panning {
@@ -29,6 +31,9 @@
   background-color: #ffffff;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   border: 1px solid #e5e7eb;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
 
 /* Background Grid Patterns */
@@ -65,7 +70,26 @@
 .canvas-object {
   position: absolute;
   box-sizing: border-box;
-  cursor: pointer;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  touch-action: none;
+}
+
+.canvas-object * {
+  -webkit-user-drag: none;
+}
+
+/* Ensure inner elements pass pointer events directly to the drag container */
+.canvas-object .parking-slot,
+.canvas-object .canvas-road,
+.canvas-object .canvas-wall,
+.canvas-object .canvas-pillar,
+.canvas-object .canvas-gate {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .canvas-object--selected {
@@ -101,6 +125,7 @@
   border: 1.5px solid #2563eb;
   border-radius: 1px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
 }
 
 .canvas-selection-handle--nw {
@@ -152,6 +177,7 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
   pointer-events: auto;
   cursor: grab;
+  touch-action: none;
   transition: transform 0.15s ease, background-color 0.15s ease;
 }
 
@@ -206,6 +232,7 @@
   align-items: center;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
   letter-spacing: 0.02em;
+  pointer-events: none;
 }
 
 .canvas-selection-badge__dim {

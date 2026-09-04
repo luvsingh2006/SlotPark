@@ -47,12 +47,14 @@ export function ParkingSlot({
 
   return (
     <div
-      role="button"
-      tabIndex={status === 'disabled' ? -1 : 0}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? (status === 'disabled' ? -1 : 0) : undefined}
       className={`parking-slot parking-slot--${status} parking-slot--${vehicleType} ${className}`}
       style={customStyle}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
+      draggable={false}
+      onDragStart={(e) => e.preventDefault()}
       title={`${label || id} (${vehicleType} - ${status})`}
       data-slot-id={id}
     >

@@ -8,7 +8,7 @@ import {
 } from '../utils/layoutModels'
 import {
   snapPointToGrid,
-  snapToGrid,
+  snapToGrid as snapValueToGrid,
   clampToBounds,
   snapAngle,
   DEFAULT_GRID_SIZE,
@@ -212,6 +212,8 @@ export function CanvasViewport({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleFitView, zoom, pan])
 
+  const lastUpdateRef = useRef({ id: null, x: null, y: null, rotation: null })
+
   // Initiate dragging an object on the canvas
   const handleObjectMouseDown = (e, obj) => {
     if (e.button !== 0) return
@@ -227,6 +229,14 @@ export function CanvasViewport({
 
     e.stopPropagation()
     e.preventDefault()
+
+    if (e.currentTarget?.setPointerCapture && e.pointerId !== undefined) {
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId)
+      } catch {
+        // Ignore environments where setPointerCapture fails
+      }
+    }
 
     if (onSelectObject) onSelectObject(obj.id)
 
@@ -249,6 +259,14 @@ export function CanvasViewport({
     if (e.button !== 0) return
     e.stopPropagation()
     e.preventDefault()
+
+    if (e.currentTarget?.setPointerCapture && e.pointerId !== undefined) {
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId)
+      } catch {
+        // Ignore environments where setPointerCapture fails
+      }
+    }
 
     if (onSelectObject) onSelectObject(obj.id)
 
@@ -307,6 +325,14 @@ export function CanvasViewport({
       // Snap to 15-degree steps if snapToGrid is enabled or Shift is held
       const finalAngle = (ctx.snapToGrid || e.shiftKey) ? snapAngle(deg, 15) : deg
 
+      if (
+        lastUpdateRef.current.id === id &&
+        lastUpdateRef.current.rotation === finalAngle
+      ) {
+        return
+      }
+      lastUpdateRef.current = { id, rotation: finalAngle }
+
       setRotatingAngle(finalAngle)
       ctx.onUpdateObject(id, { rotation: finalAngle })
       return
@@ -338,8 +364,8 @@ export function CanvasViewport({
     let targetY = startObjY + deltaCanvasY
 
     if (ctx.snapToGrid) {
-      targetX = snapToGrid(targetX, ctx.gridSize)
-      targetY = snapToGrid(targetY, ctx.gridSize)
+      targetX = snapValueToGrid(targetX, ctx.gridSize)
+      targetY = snapValueToGrid(targetY, ctx.gridSize)
     } else {
       targetX = Math.round(targetX)
       targetY = Math.round(targetY)
@@ -353,6 +379,15 @@ export function CanvasViewport({
       ctx.canvasWidth,
       ctx.canvasHeight
     )
+
+    if (
+      lastUpdateRef.current.id === id &&
+      lastUpdateRef.current.x === clamped.x &&
+      lastUpdateRef.current.y === clamped.y
+    ) {
+      return
+    }
+    lastUpdateRef.current = { id, x: clamped.x, y: clamped.y }
 
     ctx.onUpdateObject(id, { x: clamped.x, y: clamped.y })
   }, [])
@@ -375,14 +410,25 @@ export function CanvasViewport({
         }
       }, 50)
     }
+    lastUpdateRef.current = { id: null, x: null, y: null, rotation: null }
   }, [])
 
   useEffect(() => {
-    window.addEventListener('mousemove', handleGlobalMouseMove)
-    window.addEventListener('mouseup', handleGlobalMouseUp)
+    const handleMove = (e) => handleGlobalMouseMove(e)
+    const handleUp = (e) => handleGlobalMouseUp(e)
+
+    window.addEventListener('pointermove', handleMove)
+    window.addEventListener('pointerup', handleUp)
+    window.addEventListener('pointercancel', handleUp)
+    window.addEventListener('mousemove', handleMove)
+    window.addEventListener('mouseup', handleUp)
+
     return () => {
-      window.removeEventListener('mousemove', handleGlobalMouseMove)
-      window.removeEventListener('mouseup', handleGlobalMouseUp)
+      window.removeEventListener('pointermove', handleMove)
+      window.removeEventListener('pointerup', handleUp)
+      window.removeEventListener('pointercancel', handleUp)
+      window.removeEventListener('mousemove', handleMove)
+      window.removeEventListener('mouseup', handleUp)
     }
   }, [handleGlobalMouseMove, handleGlobalMouseUp])
 
@@ -496,6 +542,7 @@ export function CanvasViewport({
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseLeave}
       onClick={handleCanvasSurfaceClick}
+      onDragStart={(e) => e.preventDefault()}
     >
       <div
         className={`canvas-surface ${showGrid ? `canvas-surface--grid-${gridStyle}` : ''}`}
@@ -530,6 +577,9 @@ export function CanvasViewport({
               key={obj.id}
               className={`canvas-object ${isSelected ? 'canvas-object--selected' : ''} ${isDragging ? 'canvas-object--dragging' : ''} ${activeTool === 'select' ? 'canvas-object--draggable' : ''}`}
               style={objectStyle}
+              draggable={false}
+              onDragStart={(e) => e.preventDefault()}
+              onPointerDown={(e) => handleObjectMouseDown(e, obj)}
               onMouseDown={(e) => handleObjectMouseDown(e, obj)}
               onClick={(e) => {
                 e.stopPropagation()
@@ -565,6 +615,9 @@ export function CanvasViewport({
                     <span className="canvas-selection-rotate-stem" />
                     <span
                       className="canvas-selection-rotate-handle"
+                      draggable={false}
+                      onDragStart={(e) => e.preventDefault()}
+                      onPointerDown={(e) => handleRotateMouseDown(e, obj)}
                       onMouseDown={(e) => handleRotateMouseDown(e, obj)}
                       onClick={(e) => e.stopPropagation()}
                       title="Drag to Rotate (Hold Shift to snap 15°)"

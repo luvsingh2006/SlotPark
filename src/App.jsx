@@ -53,12 +53,27 @@ function App() {
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd' && selectedId) {
         e.preventDefault()
         handleDuplicateObject(selectedId)
+      } else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) && selectedId) {
+        e.preventDefault()
+        const step = e.shiftKey ? DEFAULT_GRID_SIZE : (snapToGrid ? 5 : 1)
+        let dx = 0
+        let dy = 0
+        if (e.key === 'ArrowLeft') dx = -step
+        if (e.key === 'ArrowRight') dx = step
+        if (e.key === 'ArrowUp') dy = -step
+        if (e.key === 'ArrowDown') dy = step
+        handleNudgeObject(selectedId, dx, dy)
+      } else if ((e.key === '[' || e.key === ']') && selectedId) {
+        e.preventDefault()
+        const angleStep = e.shiftKey ? 45 : 15
+        const deltaAngle = e.key === '[' ? -angleStep : angleStep
+        handleRotateObjectStep(selectedId, deltaAngle)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedId, objects])
+  }, [selectedId, objects, snapToGrid])
 
   const handleSelectObject = (id) => {
     if (activeTool === 'eraser') {
@@ -88,6 +103,36 @@ function App() {
           DEFAULT_CANVAS_CONFIG.height
         )
         return { ...merged, x: clamped.x, y: clamped.y }
+      })
+    )
+  }
+
+  const handleNudgeObject = (id, dx, dy) => {
+    setObjects((prev) =>
+      prev.map((obj) => {
+        if (obj.id !== id) return obj
+        const targetX = obj.x + dx
+        const targetY = obj.y + dy
+        const clamped = clampToBounds(
+          targetX,
+          targetY,
+          obj.width,
+          obj.height,
+          DEFAULT_CANVAS_CONFIG.width,
+          DEFAULT_CANVAS_CONFIG.height
+        )
+        return { ...obj, x: clamped.x, y: clamped.y }
+      })
+    )
+  }
+
+  const handleRotateObjectStep = (id, deltaAngle) => {
+    setObjects((prev) =>
+      prev.map((obj) => {
+        if (obj.id !== id) return obj
+        const currentRot = obj.rotation || 0
+        const newRot = (currentRot + deltaAngle % 360 + 360) % 360
+        return { ...obj, rotation: newRot }
       })
     )
   }
@@ -186,7 +231,7 @@ function App() {
               <h2>Parking Floor Plan</h2>
               <span className="panel-hint">
                 {activeTool === 'select'
-                  ? 'Drag objects to reposition • Drag canvas to pan • Scroll to zoom'
+                  ? 'Drag or Arrow keys to nudge • Shift+Arrow 20px • Drag canvas to pan • Scroll to zoom'
                   : activeTool === 'eraser'
                   ? 'Click any element to remove it'
                   : `Click canvas to place ${activeTool} (Esc to cancel)`}

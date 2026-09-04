@@ -72,10 +72,16 @@ function App() {
     }
   }
 
-  const handleUpdateSelectedSlot = (updates) => {
+  const handleUpdateObject = (id, updates) => {
     setObjects((prev) =>
-      prev.map((obj) => (obj.id === selectedId ? { ...obj, ...updates } : obj))
+      prev.map((obj) => (obj.id === id ? { ...obj, ...updates } : obj))
     )
+  }
+
+  const handleUpdateSelectedSlot = (updates) => {
+    if (selectedId) {
+      handleUpdateObject(selectedId, updates)
+    }
   }
 
   const handleDeleteObject = (id) => {
@@ -149,7 +155,7 @@ function App() {
               <h2>Parking Floor Plan</h2>
               <span className="panel-hint">
                 {activeTool === 'select'
-                  ? 'Drag canvas to pan • Scroll to zoom • Click object to inspect'
+                  ? 'Drag objects to reposition • Drag canvas to pan • Scroll to zoom'
                   : activeTool === 'eraser'
                   ? 'Click any element to remove it'
                   : `Click canvas to place ${activeTool} (Esc to cancel)`}
@@ -161,6 +167,7 @@ function App() {
             objects={objects}
             selectedObjectId={selectedId}
             onSelectObject={handleSelectObject}
+            onUpdateObject={handleUpdateObject}
             onCanvasClick={handleCanvasClick}
             onPlaceObject={handlePlaceObject}
             zoom={transform.zoom}

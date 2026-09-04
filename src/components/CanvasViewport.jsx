@@ -6,13 +6,14 @@ import {
   DEFAULT_CANVAS_CONFIG,
   DEFAULT_DIMENSIONS,
 } from '../utils/layoutModels'
-import { snapPointToGrid, DEFAULT_GRID_SIZE } from '../utils/gridUtils'
+import { snapPointToGrid, snapToGrid, DEFAULT_GRID_SIZE } from '../utils/gridUtils'
 import './CanvasViewport.css'
 
 export function CanvasViewport({
   objects = [],
   selectedObjectId = null,
   onSelectObject,
+  onUpdateObject,
   onCanvasClick,
   onPlaceObject,
   canvasWidth = DEFAULT_CANVAS_CONFIG.width,
@@ -31,7 +32,18 @@ export function CanvasViewport({
   const isPanningRef = useRef(false)
   const panStartRef = useRef({ x: 0, y: 0 })
 
+  const isDraggingObjectRef = useRef(false)
+  const dragObjectRef = useRef({
+    id: null,
+    startMouseX: 0,
+    startMouseY: 0,
+    startObjX: 0,
+    startObjY: 0,
+    hasMoved: false,
+  })
+
   const [isPanningState, setIsPanningState] = useState(false)
+  const [draggingObjectId, setDraggingObjectId] = useState(null)
   const [cursorCanvasPos, setCursorCanvasPos] = useState(null)
 
   const isPlacing = activeTool !== 'select' && activeTool !== 'eraser'
@@ -184,6 +196,73 @@ export function CanvasViewport({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleFitView, zoom, pan])
 
+  // Initiate dragging an object on the canvas
+  const handleObjectMouseDown = (e, obj) => {
+    if (e.button !== 0) return
+    if (activeTool !== 'select') return
+
+    e.stopPropagation()
+    if (onSelectObject) onSelectObject(obj.id)
+
+    isDraggingObjectRef.current = true
+    dragObjectRef.current = {
+      id: obj.id,
+      startMouseX: e.clientX,
+      startMouseY: e.clientY,
+      startObjX: obj.x,
+      startObjY: obj.y,
+      hasMoved: false,
+    }
+    setDraggingObjectId(obj.id)
+  }
+
+  const handleGlobalMouseMove = useCallback(
+    (e) => {
+      if (!isDraggingObjectRef.current || !onUpdateObject) return
+
+      const { id, startMouseX, startMouseY, startObjX, startObjY } = dragObjectRef.current
+      const deltaScreenX = e.clientX - startMouseX
+      const deltaScreenY = e.clientY - startMouseY
+
+      if (Math.abs(deltaScreenX) > 2 || Math.abs(deltaScreenY) > 2) {
+        dragObjectRef.current.hasMoved = true
+      }
+
+      const deltaCanvasX = deltaScreenX / zoom
+      const deltaCanvasY = deltaScreenY / zoom
+
+      let targetX = startObjX + deltaCanvasX
+      let targetY = startObjY + deltaCanvasY
+
+      if (snapToGrid) {
+        targetX = snapToGrid(targetX, gridSize)
+        targetY = snapToGrid(targetY, gridSize)
+      } else {
+        targetX = Math.round(targetX)
+        targetY = Math.round(targetY)
+      }
+
+      onUpdateObject(id, { x: targetX, y: targetY })
+    },
+    [zoom, snapToGrid, gridSize, onUpdateObject]
+  )
+
+  const handleGlobalMouseUp = useCallback(() => {
+    if (isDraggingObjectRef.current) {
+      isDraggingObjectRef.current = false
+      setDraggingObjectId(null)
+    }
+  }, [])
+
+  useEffect(() => {
+    window.addEventListener('mousemove', handleGlobalMouseMove)
+    window.addEventListener('mouseup', handleGlobalMouseUp)
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove)
+      window.removeEventListener('mouseup', handleGlobalMouseUp)
+    }
+  }, [handleGlobalMouseMove, handleGlobalMouseUp])
+
   // Mouse down on canvas background -> begin panning if not placing an object
   const handleMouseDown = (e) => {
     if (e.button !== 0 && e.button !== 1) return
@@ -314,13 +393,17 @@ export function CanvasViewport({
             transformOrigin: 'center center',
           }
 
+          const isDragging = obj.id === draggingObjectId
+
           return (
             <div
               key={obj.id}
-              className={`canvas-object ${isSelected ? 'canvas-object--selected' : ''}`}
+              className={`canvas-object ${isSelected ? 'canvas-object--selected' : ''} ${isDragging ? 'canvas-object--dragging' : ''} ${activeTool === 'select' ? 'canvas-object--draggable' : ''}`}
               style={objectStyle}
+              onMouseDown={(e) => handleObjectMouseDown(e, obj)}
               onClick={(e) => {
                 e.stopPropagation()
+                if (dragObjectRef.current.hasMoved) return
                 if (onSelectObject) onSelectObject(obj.id)
               }}
             >

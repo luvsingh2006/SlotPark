@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { CanvasViewport } from './components/CanvasViewport'
 import { DesignerToolbar } from './components/DesignerToolbar'
 import { SlotInspector } from './components/SlotInspector'
@@ -80,7 +80,7 @@ function App() {
       handleDeleteObject(id)
       return
     }
-    setSelectedId((prev) => (prev === id ? null : id))
+    setSelectedId(id)
   }
 
   const handleCanvasClick = () => {
@@ -89,7 +89,7 @@ function App() {
     }
   }
 
-  const handleUpdateObject = (id, updates) => {
+  const handleUpdateObject = useCallback((id, updates) => {
     setObjects((prev) =>
       prev.map((obj) => {
         if (obj.id !== id) return obj
@@ -105,7 +105,7 @@ function App() {
         return { ...merged, x: clamped.x, y: clamped.y }
       })
     )
-  }
+  }, [])
 
   const handleNudgeObject = (id, dx, dy) => {
     setObjects((prev) =>

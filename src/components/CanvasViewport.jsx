@@ -49,6 +49,7 @@ export function CanvasViewport({
   })
 
   const isRotatingRef = useRef(false)
+  const hasRotatedRef = useRef(false)
   const rotateTargetRef = useRef({
     id: null,
     centerX: 0,
@@ -216,7 +217,17 @@ export function CanvasViewport({
     if (e.button !== 0) return
     if (activeTool !== 'select') return
 
+    // Do not initiate dragging if clicking rotate handle
+    if (
+      e.target.closest('.canvas-selection-rotate-handle') ||
+      e.target.closest('.canvas-selection-rotate-anchor')
+    ) {
+      return
+    }
+
     e.stopPropagation()
+    e.preventDefault()
+
     if (onSelectObject) onSelectObject(obj.id)
 
     isDraggingObjectRef.current = true
@@ -226,6 +237,8 @@ export function CanvasViewport({
       startMouseY: e.clientY,
       startObjX: obj.x,
       startObjY: obj.y,
+      objWidth: obj.width || 80,
+      objHeight: obj.height || 120,
       hasMoved: false,
     }
     setDraggingObjectId(obj.id)
@@ -235,8 +248,12 @@ export function CanvasViewport({
   const handleRotateMouseDown = (e, obj) => {
     if (e.button !== 0) return
     e.stopPropagation()
+    e.preventDefault()
+
+    if (onSelectObject) onSelectObject(obj.id)
 
     isRotatingRef.current = true
+    hasRotatedRef.current = false
     rotateTargetRef.current = {
       id: obj.id,
       centerX: obj.x + obj.width / 2,
@@ -246,74 +263,117 @@ export function CanvasViewport({
     setRotatingAngle(obj.rotation || 0)
   }
 
-  const handleGlobalMouseMove = useCallback(
-    (e) => {
-      // Rotation angle calculation
-      if (isRotatingRef.current && onUpdateObject) {
-        const rect = containerRef.current?.getBoundingClientRect()
-        if (!rect) return
-        const mouseCanvasX = (e.clientX - rect.left - pan.x) / zoom
-        const mouseCanvasY = (e.clientY - rect.top - pan.y) / zoom
+  const dragContextRef = useRef({
+    zoom,
+    pan,
+    snapToGrid,
+    gridSize,
+    canvasWidth,
+    canvasHeight,
+    onUpdateObject,
+  })
 
-        const { id, centerX, centerY } = rotateTargetRef.current
-        const dx = mouseCanvasX - centerX
-        const dy = mouseCanvasY - centerY
+  useEffect(() => {
+    dragContextRef.current = {
+      zoom,
+      pan,
+      snapToGrid,
+      gridSize,
+      canvasWidth,
+      canvasHeight,
+      onUpdateObject,
+    }
+  })
 
-        const rad = Math.atan2(dy, dx)
-        let deg = Math.round(rad * (180 / Math.PI) + 90)
-        deg = (deg % 360 + 360) % 360
+  const handleGlobalMouseMove = useCallback((e) => {
+    const ctx = dragContextRef.current
 
-        // Snap to 15-degree steps if snapToGrid is enabled or Shift is held
-        const finalAngle = (snapToGrid || e.shiftKey) ? snapAngle(deg, 15) : deg
+    // Rotation angle calculation
+    if (isRotatingRef.current && ctx.onUpdateObject) {
+      hasRotatedRef.current = true
+      const rect = containerRef.current?.getBoundingClientRect()
+      if (!rect) return
+      const mouseCanvasX = (e.clientX - rect.left - ctx.pan.x) / ctx.zoom
+      const mouseCanvasY = (e.clientY - rect.top - ctx.pan.y) / ctx.zoom
 
-        setRotatingAngle(finalAngle)
-        onUpdateObject(id, { rotation: finalAngle })
-        return
-      }
+      const { id, centerX, centerY } = rotateTargetRef.current
+      const dx = mouseCanvasX - centerX
+      const dy = mouseCanvasY - centerY
 
-      if (!isDraggingObjectRef.current || !onUpdateObject) return
+      const rad = Math.atan2(dy, dx)
+      let deg = Math.round(rad * (180 / Math.PI) + 90)
+      deg = (deg % 360 + 360) % 360
 
-      const { id, startMouseX, startMouseY, startObjX, startObjY } = dragObjectRef.current
-      const deltaScreenX = e.clientX - startMouseX
-      const deltaScreenY = e.clientY - startMouseY
+      // Snap to 15-degree steps if snapToGrid is enabled or Shift is held
+      const finalAngle = (ctx.snapToGrid || e.shiftKey) ? snapAngle(deg, 15) : deg
 
-      if (Math.abs(deltaScreenX) > 2 || Math.abs(deltaScreenY) > 2) {
-        dragObjectRef.current.hasMoved = true
-      }
+      setRotatingAngle(finalAngle)
+      ctx.onUpdateObject(id, { rotation: finalAngle })
+      return
+    }
 
-      const deltaCanvasX = deltaScreenX / zoom
-      const deltaCanvasY = deltaScreenY / zoom
+    if (!isDraggingObjectRef.current || !ctx.onUpdateObject) return
 
-      let targetX = startObjX + deltaCanvasX
-      let targetY = startObjY + deltaCanvasY
+    const {
+      id,
+      startMouseX,
+      startMouseY,
+      startObjX,
+      startObjY,
+      objWidth,
+      objHeight,
+    } = dragObjectRef.current
 
-      if (snapToGrid) {
-        targetX = snapToGrid(targetX, gridSize)
-        targetY = snapToGrid(targetY, gridSize)
-      } else {
-        targetX = Math.round(targetX)
-        targetY = Math.round(targetY)
-      }
+    const deltaScreenX = e.clientX - startMouseX
+    const deltaScreenY = e.clientY - startMouseY
 
-      const currentObj = objects.find((o) => o.id === id)
-      const objWidth = currentObj?.width || 80
-      const objHeight = currentObj?.height || 120
-      const clamped = clampToBounds(targetX, targetY, objWidth, objHeight, canvasWidth, canvasHeight)
+    if (Math.abs(deltaScreenX) > 2 || Math.abs(deltaScreenY) > 2) {
+      dragObjectRef.current.hasMoved = true
+    }
 
-      onUpdateObject(id, { x: clamped.x, y: clamped.y })
-    },
-    [zoom, snapToGrid, gridSize, onUpdateObject, objects, canvasWidth, canvasHeight, pan]
-  )
+    const deltaCanvasX = deltaScreenX / ctx.zoom
+    const deltaCanvasY = deltaScreenY / ctx.zoom
+
+    let targetX = startObjX + deltaCanvasX
+    let targetY = startObjY + deltaCanvasY
+
+    if (ctx.snapToGrid) {
+      targetX = snapToGrid(targetX, ctx.gridSize)
+      targetY = snapToGrid(targetY, ctx.gridSize)
+    } else {
+      targetX = Math.round(targetX)
+      targetY = Math.round(targetY)
+    }
+
+    const clamped = clampToBounds(
+      targetX,
+      targetY,
+      objWidth || 80,
+      objHeight || 120,
+      ctx.canvasWidth,
+      ctx.canvasHeight
+    )
+
+    ctx.onUpdateObject(id, { x: clamped.x, y: clamped.y })
+  }, [])
 
   const handleGlobalMouseUp = useCallback(() => {
     if (isRotatingRef.current) {
       isRotatingRef.current = false
       setIsRotatingState(false)
       setRotatingAngle(null)
+      setTimeout(() => {
+        hasRotatedRef.current = false
+      }, 50)
     }
     if (isDraggingObjectRef.current) {
       isDraggingObjectRef.current = false
       setDraggingObjectId(null)
+      setTimeout(() => {
+        if (dragObjectRef.current) {
+          dragObjectRef.current.hasMoved = false
+        }
+      }, 50)
     }
   }, [])
 
@@ -473,7 +533,7 @@ export function CanvasViewport({
               onMouseDown={(e) => handleObjectMouseDown(e, obj)}
               onClick={(e) => {
                 e.stopPropagation()
-                if (dragObjectRef.current.hasMoved) return
+                if (dragObjectRef.current?.hasMoved || hasRotatedRef.current) return
                 if (onSelectObject) onSelectObject(obj.id)
               }}
             >
@@ -497,11 +557,16 @@ export function CanvasViewport({
                   <span className="canvas-selection-handle canvas-selection-handle--ne" />
                   <span className="canvas-selection-handle canvas-selection-handle--se" />
                   <span className="canvas-selection-handle canvas-selection-handle--sw" />
-                  <div className="canvas-selection-rotate-anchor">
+                  <div
+                    className="canvas-selection-rotate-anchor"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <span className="canvas-selection-rotate-stem" />
                     <span
                       className="canvas-selection-rotate-handle"
                       onMouseDown={(e) => handleRotateMouseDown(e, obj)}
+                      onClick={(e) => e.stopPropagation()}
                       title="Drag to Rotate (Hold Shift to snap 15°)"
                     />
                     {isRotatingState && rotateTargetRef.current.id === obj.id && (

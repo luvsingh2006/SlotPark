@@ -46,6 +46,22 @@
     linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
 }
 
+.canvas-surface__boundary-tag {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: #9ca3af;
+  background-color: rgba(243, 244, 246, 0.85);
+  border: 1px solid #e5e7eb;
+  padding: 2px 6px;
+  border-radius: 3px;
+  pointer-events: none;
+  user-select: none;
+}
+
 .canvas-object {
   position: absolute;
   box-sizing: border-box;

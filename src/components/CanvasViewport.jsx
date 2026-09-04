@@ -6,7 +6,7 @@ import {
   DEFAULT_CANVAS_CONFIG,
   DEFAULT_DIMENSIONS,
 } from '../utils/layoutModels'
-import { snapPointToGrid, snapToGrid, DEFAULT_GRID_SIZE } from '../utils/gridUtils'
+import { snapPointToGrid, snapToGrid, clampToBounds, DEFAULT_GRID_SIZE } from '../utils/gridUtils'
 import './CanvasViewport.css'
 
 export function CanvasViewport({
@@ -242,9 +242,14 @@ export function CanvasViewport({
         targetY = Math.round(targetY)
       }
 
-      onUpdateObject(id, { x: targetX, y: targetY })
+      const currentObj = objects.find((o) => o.id === id)
+      const objWidth = currentObj?.width || 80
+      const objHeight = currentObj?.height || 120
+      const clamped = clampToBounds(targetX, targetY, objWidth, objHeight, canvasWidth, canvasHeight)
+
+      onUpdateObject(id, { x: clamped.x, y: clamped.y })
     },
-    [zoom, snapToGrid, gridSize, onUpdateObject]
+    [zoom, snapToGrid, gridSize, onUpdateObject, objects, canvasWidth, canvasHeight]
   )
 
   const handleGlobalMouseUp = useCallback(() => {
@@ -320,7 +325,11 @@ export function CanvasViewport({
     if (e.target.closest('.canvas-viewport__controls')) return
 
     if (isPlacing && onPlaceObject && cursorCanvasPos) {
-      onPlaceObject(activeTool, cursorCanvasPos.x, cursorCanvasPos.y)
+      const dim = activeToolDimensions || { width: 80, height: 120 }
+      const rawX = cursorCanvasPos.x - dim.width / 2
+      const rawY = cursorCanvasPos.y - dim.height / 2
+      const clamped = clampToBounds(rawX, rawY, dim.width, dim.height, canvasWidth, canvasHeight)
+      onPlaceObject(activeTool, clamped.x + dim.width / 2, clamped.y + dim.height / 2)
       return
     }
 
@@ -379,6 +388,9 @@ export function CanvasViewport({
           transformOrigin: '0 0',
         }}
       >
+        <div className="canvas-surface__boundary-tag" aria-hidden="true">
+          {canvasWidth} × {canvasHeight} px
+        </div>
         {objects.map((obj) => {
           const isSelected = obj.id === selectedObjectId
           const isSlot = isSlotType(obj.type)

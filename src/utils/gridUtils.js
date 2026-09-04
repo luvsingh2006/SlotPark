@@ -28,3 +28,23 @@ export function snapObjectPosition(x, y, width, height, gridSize = DEFAULT_GRID_
     y: snapToGrid(y, gridSize),
   }
 }
+
+/**
+ * Clamp object position coordinates so the object stays strictly inside
+ * the canvas viewport boundary limits.
+ */
+export function clampToBounds(
+  x,
+  y,
+  width = 80,
+  height = 120,
+  canvasWidth = 1600,
+  canvasHeight = 1000
+) {
+  const maxX = Math.max(0, canvasWidth - width)
+  const maxY = Math.max(0, canvasHeight - height)
+  return {
+    x: Math.max(0, Math.min(maxX, Math.round(x))),
+    y: Math.max(0, Math.min(maxY, Math.round(y))),
+  }
+}

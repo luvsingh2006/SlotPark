@@ -5,12 +5,14 @@ import { SlotInspector } from './components/SlotInspector'
 import {
   INITIAL_LAYOUT_OBJECTS,
   OBJECT_TYPES,
+  DEFAULT_CANVAS_CONFIG,
+  DEFAULT_DIMENSIONS,
   createLayoutObject,
   isSlotType,
   getPlacedObjectPosition,
   generateNextLabel,
 } from './utils/layoutModels'
-import { snapPointToGrid, DEFAULT_GRID_SIZE } from './utils/gridUtils'
+import { snapPointToGrid, clampToBounds, DEFAULT_GRID_SIZE } from './utils/gridUtils'
 import './App.css'
 
 function App() {
@@ -74,7 +76,19 @@ function App() {
 
   const handleUpdateObject = (id, updates) => {
     setObjects((prev) =>
-      prev.map((obj) => (obj.id === id ? { ...obj, ...updates } : obj))
+      prev.map((obj) => {
+        if (obj.id !== id) return obj
+        const merged = { ...obj, ...updates }
+        const clamped = clampToBounds(
+          merged.x,
+          merged.y,
+          merged.width,
+          merged.height,
+          DEFAULT_CANVAS_CONFIG.width,
+          DEFAULT_CANVAS_CONFIG.height
+        )
+        return { ...merged, x: clamped.x, y: clamped.y }
+      })
     )
   }
 
@@ -95,11 +109,19 @@ function App() {
     const target = objects.find((o) => o.id === id)
     if (!target) return
     const newId = `${target.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+    const nextPos = clampToBounds(
+      target.x + 20,
+      target.y + 20,
+      target.width,
+      target.height,
+      DEFAULT_CANVAS_CONFIG.width,
+      DEFAULT_CANVAS_CONFIG.height
+    )
     const duplicated = {
       ...target,
       id: newId,
-      x: target.x + 20,
-      y: target.y + 20,
+      x: nextPos.x,
+      y: nextPos.y,
       label: target.label ? `${target.label} (Copy)` : '',
     }
     setObjects((prev) => [...prev, duplicated])
@@ -119,8 +141,17 @@ function App() {
   const handlePlaceObject = (toolType, clickX, clickY) => {
     const rawPos = getPlacedObjectPosition(toolType, clickX, clickY)
     const pos = snapToGrid ? snapPointToGrid(rawPos.x, rawPos.y, DEFAULT_GRID_SIZE) : rawPos
+    const dim = DEFAULT_DIMENSIONS[toolType] || { width: 80, height: 120 }
+    const clamped = clampToBounds(
+      pos.x,
+      pos.y,
+      dim.width,
+      dim.height,
+      DEFAULT_CANVAS_CONFIG.width,
+      DEFAULT_CANVAS_CONFIG.height
+    )
     const label = generateNextLabel(toolType, objects)
-    const newObj = createLayoutObject(toolType, pos.x, pos.y, { label })
+    const newObj = createLayoutObject(toolType, clamped.x, clamped.y, { label })
     setObjects((prev) => [...prev, newObj])
     setSelectedId(newObj.id)
   }

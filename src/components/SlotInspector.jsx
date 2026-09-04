@@ -91,6 +91,8 @@ export function SlotInspector({
             <input
               id="inspector-x"
               type="number"
+              min="0"
+              max="1600"
               className="form-input"
               value={obj.x ?? 0}
               onChange={(e) => handleNumericChange('x', e.target.value)}
@@ -101,6 +103,8 @@ export function SlotInspector({
             <input
               id="inspector-y"
               type="number"
+              min="0"
+              max="1000"
               className="form-input"
               value={obj.y ?? 0}
               onChange={(e) => handleNumericChange('y', e.target.value)}

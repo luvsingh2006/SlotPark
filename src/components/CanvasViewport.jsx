@@ -57,10 +57,26 @@ export function CanvasViewport({
     centerY: 0,
   })
 
+  const isResizingRef = useRef(false)
+  const hasResizedRef = useRef(false)
+  const resizeTargetRef = useRef({
+    id: null,
+    corner: null,
+    oppWorldX: 0,
+    oppWorldY: 0,
+    startW: 0,
+    startH: 0,
+    cos: 1,
+    sin: 0,
+    rotation: 0,
+  })
+
   const [isPanningState, setIsPanningState] = useState(false)
   const [draggingObjectId, setDraggingObjectId] = useState(null)
   const [isRotatingState, setIsRotatingState] = useState(false)
   const [rotatingAngle, setRotatingAngle] = useState(null)
+  const [isResizingState, setIsResizingState] = useState(false)
+  const [resizingDimensions, setResizingDimensions] = useState(null)
   const [cursorCanvasPos, setCursorCanvasPos] = useState(null)
 
   const isPlacing = activeTool !== 'select' && activeTool !== 'eraser'
@@ -282,6 +298,71 @@ export function CanvasViewport({
     setRotatingAngle(obj.rotation || 0)
   }
 
+  // Initiate resizing an object from a corner handle
+  const handleResizeMouseDown = (e, obj, corner) => {
+    if (e.button !== 0) return
+    e.stopPropagation()
+    e.preventDefault()
+
+    if (e.currentTarget?.setPointerCapture && e.pointerId !== undefined) {
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId)
+      } catch {
+        // Ignore environments where setPointerCapture fails
+      }
+    }
+
+    if (onSelectObject) onSelectObject(obj.id)
+
+    isResizingRef.current = true
+    hasResizedRef.current = false
+
+    const rotation = obj.rotation || 0
+    const rad = (rotation * Math.PI) / 180
+    const cos = Math.cos(rad)
+    const sin = Math.sin(rad)
+
+    const startW = obj.width || 80
+    const startH = obj.height || 120
+    const startCenterX = obj.x + startW / 2
+    const startCenterY = obj.y + startH / 2
+
+    let oppLocalRelX = 0
+    let oppLocalRelY = 0
+
+    if (corner === 'se') {
+      oppLocalRelX = -startW / 2
+      oppLocalRelY = -startH / 2
+    } else if (corner === 'sw') {
+      oppLocalRelX = startW / 2
+      oppLocalRelY = -startH / 2
+    } else if (corner === 'ne') {
+      oppLocalRelX = -startW / 2
+      oppLocalRelY = startH / 2
+    } else if (corner === 'nw') {
+      oppLocalRelX = startW / 2
+      oppLocalRelY = startH / 2
+    }
+
+    const oppWorldX = startCenterX + (oppLocalRelX * cos - oppLocalRelY * sin)
+    const oppWorldY = startCenterY + (oppLocalRelX * sin + oppLocalRelY * cos)
+
+    resizeTargetRef.current = {
+      id: obj.id,
+      corner,
+      oppWorldX,
+      oppWorldY,
+      startW,
+      startH,
+      cos,
+      sin,
+      rotation,
+    }
+
+    setIsResizingState(true)
+    setResizingDimensions({ width: startW, height: startH })
+  }
+
   const dragContextRef = useRef({
     zoom,
     pan,
@@ -336,6 +417,100 @@ export function CanvasViewport({
 
       setRotatingAngle(finalAngle)
       ctx.onUpdateObject(id, { rotation: finalAngle })
+      return
+    }
+
+    // Corner resizing
+    if (isResizingRef.current && ctx.onUpdateObject) {
+      hasResizedRef.current = true
+      const rect = containerRef.current?.getBoundingClientRect()
+      if (!rect) return
+      const mouseCanvasX = (e.clientX - rect.left - ctx.pan.x) / ctx.zoom
+      const mouseCanvasY = (e.clientY - rect.top - ctx.pan.y) / ctx.zoom
+
+      const {
+        id,
+        corner,
+        oppWorldX,
+        oppWorldY,
+        cos,
+        sin,
+      } = resizeTargetRef.current
+
+      // Vector from fixed opposite corner to current mouse position in world space
+      const vWorldX = mouseCanvasX - oppWorldX
+      const vWorldY = mouseCanvasY - oppWorldY
+
+      // Transform vector to object's local rotated space (rotate by -rotation)
+      const vLocalX = vWorldX * cos + vWorldY * sin
+      const vLocalY = -vWorldX * sin + vWorldY * cos
+
+      let rawW = 0
+      let rawH = 0
+
+      if (corner === 'se') {
+        rawW = vLocalX
+        rawH = vLocalY
+      } else if (corner === 'sw') {
+        rawW = -vLocalX
+        rawH = vLocalY
+      } else if (corner === 'ne') {
+        rawW = vLocalX
+        rawH = -vLocalY
+      } else if (corner === 'nw') {
+        rawW = -vLocalX
+        rawH = -vLocalY
+      }
+
+      const minDim = 20
+      let newW = Math.max(minDim, Math.round(rawW))
+      let newH = Math.max(minDim, Math.round(rawH))
+
+      if (ctx.snapToGrid) {
+        newW = Math.max(minDim, snapValueToGrid(newW, ctx.gridSize))
+        newH = Math.max(minDim, snapValueToGrid(newH, ctx.gridSize))
+      }
+
+      let vCenterLocalX = 0
+      let vCenterLocalY = 0
+
+      if (corner === 'se') {
+        vCenterLocalX = newW / 2
+        vCenterLocalY = newH / 2
+      } else if (corner === 'sw') {
+        vCenterLocalX = -newW / 2
+        vCenterLocalY = newH / 2
+      } else if (corner === 'ne') {
+        vCenterLocalX = newW / 2
+        vCenterLocalY = -newH / 2
+      } else if (corner === 'nw') {
+        vCenterLocalX = -newW / 2
+        vCenterLocalY = -newH / 2
+      }
+
+      const newCenterX = oppWorldX + (vCenterLocalX * cos - vCenterLocalY * sin)
+      const newCenterY = oppWorldY + (vCenterLocalX * sin + vCenterLocalY * cos)
+
+      let newX = Math.round(newCenterX - newW / 2)
+      let newY = Math.round(newCenterY - newH / 2)
+
+      const clamped = clampToBounds(newX, newY, newW, newH, ctx.canvasWidth, ctx.canvasHeight)
+      newX = clamped.x
+      newY = clamped.y
+
+      if (
+        lastUpdateRef.current.id === id &&
+        lastUpdateRef.current.width === newW &&
+        lastUpdateRef.current.height === newH &&
+        lastUpdateRef.current.x === newX &&
+        lastUpdateRef.current.y === newY
+      ) {
+        return
+      }
+      lastUpdateRef.current = { id, x: newX, y: newY, width: newW, height: newH }
+
+      setResizingDimensions({ width: newW, height: newH })
+      ctx.onUpdateObject(id, { x: newX, y: newY, width: newW, height: newH })
       return
     }
 
@@ -394,6 +569,14 @@ export function CanvasViewport({
   }, [])
 
   const handleGlobalMouseUp = useCallback(() => {
+    if (isResizingRef.current) {
+      isResizingRef.current = false
+      setIsResizingState(false)
+      setResizingDimensions(null)
+      setTimeout(() => {
+        hasResizedRef.current = false
+      }, 50)
+    }
     if (isRotatingRef.current) {
       isRotatingRef.current = false
       setIsRotatingState(false)
@@ -411,7 +594,7 @@ export function CanvasViewport({
         }
       }, 50)
     }
-    lastUpdateRef.current = { id: null, x: null, y: null, rotation: null }
+    lastUpdateRef.current = { id: null, x: null, y: null, rotation: null, width: null, height: null }
   }, [])
 
   useEffect(() => {
@@ -646,7 +829,7 @@ export function CanvasViewport({
               onMouseDown={(e) => handleObjectMouseDown(e, obj)}
               onClick={(e) => {
                 e.stopPropagation()
-                if (dragObjectRef.current?.hasMoved || hasRotatedRef.current) return
+                if (dragObjectRef.current?.hasMoved || hasRotatedRef.current || hasResizedRef.current) return
                 if (onSelectObject) onSelectObject(obj.id)
               }}
             >
@@ -666,10 +849,42 @@ export function CanvasViewport({
 
               {isSelected && (
                 <div className="canvas-selection-box">
-                  <span className="canvas-selection-handle canvas-selection-handle--nw" />
-                  <span className="canvas-selection-handle canvas-selection-handle--ne" />
-                  <span className="canvas-selection-handle canvas-selection-handle--se" />
-                  <span className="canvas-selection-handle canvas-selection-handle--sw" />
+                  <span
+                    className="canvas-selection-handle canvas-selection-handle--nw"
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
+                    onPointerDown={(e) => handleResizeMouseDown(e, obj, 'nw')}
+                    onMouseDown={(e) => handleResizeMouseDown(e, obj, 'nw')}
+                    onClick={(e) => e.stopPropagation()}
+                    title="Drag to Resize (Top-Left)"
+                  />
+                  <span
+                    className="canvas-selection-handle canvas-selection-handle--ne"
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
+                    onPointerDown={(e) => handleResizeMouseDown(e, obj, 'ne')}
+                    onMouseDown={(e) => handleResizeMouseDown(e, obj, 'ne')}
+                    onClick={(e) => e.stopPropagation()}
+                    title="Drag to Resize (Top-Right)"
+                  />
+                  <span
+                    className="canvas-selection-handle canvas-selection-handle--se"
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
+                    onPointerDown={(e) => handleResizeMouseDown(e, obj, 'se')}
+                    onMouseDown={(e) => handleResizeMouseDown(e, obj, 'se')}
+                    onClick={(e) => e.stopPropagation()}
+                    title="Drag to Resize (Bottom-Right)"
+                  />
+                  <span
+                    className="canvas-selection-handle canvas-selection-handle--sw"
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
+                    onPointerDown={(e) => handleResizeMouseDown(e, obj, 'sw')}
+                    onMouseDown={(e) => handleResizeMouseDown(e, obj, 'sw')}
+                    onClick={(e) => e.stopPropagation()}
+                    title="Drag to Resize (Bottom-Left)"
+                  />
                   <div
                     className="canvas-selection-rotate-anchor"
                     onMouseDown={(e) => e.stopPropagation()}
@@ -693,7 +908,11 @@ export function CanvasViewport({
                   </div>
                   <div className="canvas-selection-badge">
                     <span className="canvas-selection-badge__title">{obj.label || obj.type}</span>
-                    <span className="canvas-selection-badge__dim">{obj.width}×{obj.height}</span>
+                    <span className="canvas-selection-badge__dim">
+                      {isResizingState && resizeTargetRef.current.id === obj.id && resizingDimensions
+                        ? `${resizingDimensions.width}×${resizingDimensions.height}`
+                        : `${obj.width}×${obj.height}`}
+                    </span>
                     {obj.rotation ? (
                       <span className="canvas-selection-badge__rot">{obj.rotation}°</span>
                     ) : null}

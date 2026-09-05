@@ -3,6 +3,8 @@ import { CanvasViewport } from './components/CanvasViewport'
 import { DesignerToolbar } from './components/DesignerToolbar'
 import { SlotInspector } from './components/SlotInspector'
 import { ParkingStatsBar } from './components/ParkingStatsBar'
+import { ExportModal } from './components/ExportModal'
+import { DownloadIcon } from './components/Icons'
 import {
   INITIAL_LAYOUT_OBJECTS,
   OBJECT_TYPES,
@@ -23,6 +25,7 @@ function App() {
   const [snapToGrid, setSnapToGrid] = useState(true)
   const [gridMode, setGridMode] = useState('dots')
   const [statsFilter, setStatsFilter] = useState(null)
+  const [isExportOpen, setIsExportOpen] = useState(false)
   const [transform, setTransform] = useState({ zoom: 1, pan: { x: 40, y: 40 } })
   const [blueprint, setBlueprint] = useState({
     url: null,
@@ -75,11 +78,15 @@ function App() {
       } else if (e.key.toLowerCase() === 'g') {
         setSnapToGrid((prev) => !prev)
       } else if (e.key === 'Escape') {
-        setStatsFilter((prevFilter) => {
-          if (prevFilter) return null
-          setActiveTool('select')
-          setSelectedId(null)
-          return null
+        setIsExportOpen((prevExport) => {
+          if (prevExport) return false
+          setStatsFilter((prevFilter) => {
+            if (prevFilter) return null
+            setActiveTool('select')
+            setSelectedId(null)
+            return null
+          })
+          return false
         })
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
         handleDeleteObject(selectedId)
@@ -281,6 +288,15 @@ function App() {
           <span className="app-header__subtitle">Spatial Layout Designer</span>
         </div>
         <div className="app-header__actions">
+          <button
+            type="button"
+            className="btn btn--subtle"
+            onClick={() => setIsExportOpen(true)}
+            title="Export Layout as JSON"
+          >
+            <DownloadIcon size={14} />
+            <span>Export</span>
+          </button>
           <button type="button" className="btn btn--primary" onClick={handleAddSlot}>
             Add Slot
           </button>
@@ -353,6 +369,13 @@ function App() {
           layerInfo={layerInfo}
         />
       </main>
+
+      <ExportModal
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        objects={objects}
+        blueprint={blueprint}
+      />
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { CanvasViewport } from './components/CanvasViewport'
 import { DesignerToolbar } from './components/DesignerToolbar'
 import { SlotInspector } from './components/SlotInspector'
+import { ParkingStatsBar } from './components/ParkingStatsBar'
 import {
   INITIAL_LAYOUT_OBJECTS,
   OBJECT_TYPES,
@@ -21,6 +22,7 @@ function App() {
   const [activeTool, setActiveTool] = useState('select')
   const [snapToGrid, setSnapToGrid] = useState(true)
   const [gridMode, setGridMode] = useState('dots')
+  const [statsFilter, setStatsFilter] = useState(null)
   const [transform, setTransform] = useState({ zoom: 1, pan: { x: 40, y: 40 } })
   const [blueprint, setBlueprint] = useState({
     url: null,
@@ -73,8 +75,12 @@ function App() {
       } else if (e.key.toLowerCase() === 'g') {
         setSnapToGrid((prev) => !prev)
       } else if (e.key === 'Escape') {
-        setActiveTool('select')
-        setSelectedId(null)
+        setStatsFilter((prevFilter) => {
+          if (prevFilter) return null
+          setActiveTool('select')
+          setSelectedId(null)
+          return null
+        })
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
         handleDeleteObject(selectedId)
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd' && selectedId) {
@@ -292,6 +298,12 @@ function App() {
         onToggleBlueprint={handleToggleBlueprint}
       />
 
+      <ParkingStatsBar
+        objects={objects}
+        activeFilter={statsFilter}
+        onSelectFilter={setStatsFilter}
+      />
+
       <main className="app-main">
         <section className="designer-canvas-section">
           <div className="panel-header">
@@ -327,6 +339,7 @@ function App() {
             onUpdateBlueprint={handleUpdateBlueprint}
             isBlueprintOpen={isBlueprintOpen}
             onToggleBlueprint={handleToggleBlueprint}
+            statsFilter={statsFilter}
           />
         </section>
 

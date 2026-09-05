@@ -3,6 +3,7 @@ import { ParkingSlot } from './ParkingSlot'
 import {
   OBJECT_TYPES,
   isSlotType,
+  getVehicleTypeFromObjectType,
   DEFAULT_CANVAS_CONFIG,
   DEFAULT_DIMENSIONS,
 } from '../utils/layoutModels'
@@ -32,6 +33,7 @@ export function CanvasViewport({
   onUpdateBlueprint,
   isBlueprintOpen = false,
   onToggleBlueprint,
+  statsFilter = null,
 }) {
   const containerRef = useRef(null)
   const isPanningRef = useRef(false)
@@ -607,6 +609,20 @@ export function CanvasViewport({
           const isSelected = obj.id === selectedObjectId
           const isSlot = isSlotType(obj.type)
 
+          const matchesStatsFilter = (targetObj, filter) => {
+            if (!filter) return true
+            if (!isSlotType(targetObj.type)) return false
+            if (filter.startsWith('status:')) {
+              const filterStatus = filter.replace('status:', '')
+              const objStatus = targetObj.status || 'available'
+              return objStatus === filterStatus
+            }
+            const targetVehicleType = targetObj.vehicleType || getVehicleTypeFromObjectType(targetObj.type)
+            return targetObj.type === filter || targetVehicleType === filter
+          }
+
+          const isDimmed = statsFilter && !matchesStatsFilter(obj, statsFilter)
+
           const objectStyle = {
             position: 'absolute',
             left: `${obj.x}px`,
@@ -622,7 +638,7 @@ export function CanvasViewport({
           return (
             <div
               key={obj.id}
-              className={`canvas-object ${isSelected ? 'canvas-object--selected' : ''} ${isDragging ? 'canvas-object--dragging' : ''} ${activeTool === 'select' ? 'canvas-object--draggable' : ''}`}
+              className={`canvas-object ${isSelected ? 'canvas-object--selected' : ''} ${isDragging ? 'canvas-object--dragging' : ''} ${isDimmed ? 'canvas-object--dimmed' : ''} ${activeTool === 'select' ? 'canvas-object--draggable' : ''}`}
               style={objectStyle}
               draggable={false}
               onDragStart={(e) => e.preventDefault()}

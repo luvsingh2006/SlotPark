@@ -1,0 +1,294 @@
+/* Parking Lot Statistics Bar */
+.parking-stats-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.stats-divider {
+  width: 1px;
+  height: 28px;
+  background-color: #e5e7eb;
+}
+
+.stats-metric-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stats-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+/* Capacity & Occupancy */
+.stats-metric-group--capacity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.stats-capacity-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+}
+
+.stats-capacity-number {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.stats-capacity-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+.stats-capacity-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.stats-occupancy-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.stats-occupancy-percent {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: #0f172a;
+}
+
+.stats-occupancy-text {
+  font-size: 10px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.stats-capacity-bar {
+  display: flex;
+  width: 100%;
+  height: 5px;
+  background-color: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.stats-segment {
+  height: 100%;
+  transition: width 0.25s ease;
+}
+
+.stats-segment--available {
+  background-color: #10b981;
+}
+
+.stats-segment--occupied {
+  background-color: #ef4444;
+}
+
+.stats-segment--reserved {
+  background-color: #f59e0b;
+}
+
+.stats-segment--disabled {
+  background-color: #94a3b8;
+}
+
+/* Vehicle Breakdown Pills */
+.stats-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.stats-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.stats-pill:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.stats-pill--active {
+  background-color: #eff6ff !important;
+  border-color: #93c5fd !important;
+  color: #1d4ed8 !important;
+  font-weight: 600;
+}
+
+.stats-pill__label {
+  font-size: 11px;
+}
+
+.stats-pill__count {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  background-color: #e5e7eb;
+  color: #1f2937;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.stats-pill--active .stats-pill__count {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.stats-pill--ev svg {
+  color: #10b981;
+}
+
+.stats-pill--accessible svg {
+  color: #2563eb;
+}
+
+.stats-pill--truck svg {
+  color: #f59e0b;
+}
+
+/* Status Item Counts */
+.stats-status-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stats-status-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  color: #4b5563;
+  transition: all 0.15s ease;
+}
+
+.stats-status-item:hover {
+  background-color: #f9fafb;
+  border-color: #e5e7eb;
+}
+
+.stats-status-item--active {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot--available {
+  background-color: #10b981;
+}
+
+.status-dot--occupied {
+  background-color: #ef4444;
+}
+
+.status-dot--reserved {
+  background-color: #f59e0b;
+}
+
+.status-label {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.status-count {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Active Filter Notification Tag */
+.stats-active-filter {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.stats-filter-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #1d4ed8;
+  background-color: #dbeafe;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.stats-filter-clear {
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  color: #1d4ed8;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.stats-filter-clear:hover {
+  color: #1e40af;
+}
+
+@media (max-width: 1024px) {
+  .parking-stats-bar {
+    gap: 10px;
+  }
+  .stats-divider {
+    display: none;
+  }
+}

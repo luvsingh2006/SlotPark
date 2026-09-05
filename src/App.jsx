@@ -4,7 +4,8 @@ import { DesignerToolbar } from './components/DesignerToolbar'
 import { SlotInspector } from './components/SlotInspector'
 import { ParkingStatsBar } from './components/ParkingStatsBar'
 import { ExportModal } from './components/ExportModal'
-import { DownloadIcon } from './components/Icons'
+import { ImportModal } from './components/ImportModal'
+import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
   INITIAL_LAYOUT_OBJECTS,
   OBJECT_TYPES,
@@ -26,6 +27,7 @@ function App() {
   const [gridMode, setGridMode] = useState('dots')
   const [statsFilter, setStatsFilter] = useState(null)
   const [isExportOpen, setIsExportOpen] = useState(false)
+  const [isImportOpen, setIsImportOpen] = useState(false)
   const [transform, setTransform] = useState({ zoom: 1, pan: { x: 40, y: 40 } })
   const [blueprint, setBlueprint] = useState({
     url: null,
@@ -34,6 +36,29 @@ function App() {
     visible: true,
   })
   const [isBlueprintOpen, setIsBlueprintOpen] = useState(false)
+
+  const handleImportLayout = useCallback((importedData, mode = 'replace') => {
+    if (!importedData || !importedData.objects) return
+    if (mode === 'replace') {
+      setObjects(importedData.objects)
+      if (importedData.objects.length > 0) {
+        setSelectedId(importedData.objects[0].id)
+      } else {
+        setSelectedId(null)
+      }
+    } else {
+      setObjects((prev) => {
+        const existingIds = new Set(prev.map((o) => o.id))
+        const sanitizedNew = importedData.objects.map((obj) => {
+          if (existingIds.has(obj.id)) {
+            return { ...obj, id: `${obj.id}-${Date.now()}-${Math.floor(Math.random() * 1000)}` }
+          }
+          return obj
+        })
+        return [...prev, ...sanitizedNew]
+      })
+    }
+  }, [])
 
   const handleUpdateBlueprint = useCallback((updates) => {
     setBlueprint((prev) => ({ ...prev, ...updates }))
@@ -78,13 +103,17 @@ function App() {
       } else if (e.key.toLowerCase() === 'g') {
         setSnapToGrid((prev) => !prev)
       } else if (e.key === 'Escape') {
-        setIsExportOpen((prevExport) => {
-          if (prevExport) return false
-          setStatsFilter((prevFilter) => {
-            if (prevFilter) return null
-            setActiveTool('select')
-            setSelectedId(null)
-            return null
+        setIsImportOpen((prevImport) => {
+          if (prevImport) return false
+          setIsExportOpen((prevExport) => {
+            if (prevExport) return false
+            setStatsFilter((prevFilter) => {
+              if (prevFilter) return null
+              setActiveTool('select')
+              setSelectedId(null)
+              return null
+            })
+            return false
           })
           return false
         })
@@ -291,6 +320,15 @@ function App() {
           <button
             type="button"
             className="btn btn--subtle"
+            onClick={() => setIsImportOpen(true)}
+            title="Import Layout from JSON"
+          >
+            <UploadIcon size={14} />
+            <span>Import</span>
+          </button>
+          <button
+            type="button"
+            className="btn btn--subtle"
             onClick={() => setIsExportOpen(true)}
             title="Export Layout as JSON"
           >
@@ -375,6 +413,13 @@ function App() {
         onClose={() => setIsExportOpen(false)}
         objects={objects}
         blueprint={blueprint}
+      />
+
+      <ImportModal
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        onImportLayout={handleImportLayout}
+        canvasBounds={{ width: DEFAULT_CANVAS_CONFIG.width, height: DEFAULT_CANVAS_CONFIG.height }}
       />
     </div>
   )

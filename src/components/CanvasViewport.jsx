@@ -6,13 +6,8 @@ import {
   DEFAULT_CANVAS_CONFIG,
   DEFAULT_DIMENSIONS,
 } from '../utils/layoutModels'
-import {
-  snapPointToGrid,
-  snapToGrid as snapValueToGrid,
-  clampToBounds,
-  snapAngle,
-  DEFAULT_GRID_SIZE,
-} from '../utils/gridUtils'
+import { snapPointToGrid, snapToGrid as snapValueToGrid, clampToBounds, snapAngle, DEFAULT_GRID_SIZE } from '../utils/gridUtils'
+import { BlueprintPanel } from './BlueprintPanel'
 import './CanvasViewport.css'
 
 export function CanvasViewport({
@@ -33,6 +28,10 @@ export function CanvasViewport({
   showGrid = true,
   gridStyle = 'dots',
   onToggleGrid,
+  blueprint = null,
+  onUpdateBlueprint,
+  isBlueprintOpen = false,
+  onToggleBlueprint,
 }) {
   const containerRef = useRef(null)
   const isPanningRef = useRef(false)
@@ -533,6 +532,34 @@ export function CanvasViewport({
     }
   }
 
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const file = e.dataTransfer.files?.[0]
+    if (file && file.type.startsWith('image/') && onUpdateBlueprint) {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result
+        if (typeof dataUrl === 'string') {
+          onUpdateBlueprint({
+            url: dataUrl,
+            name: file.name,
+            visible: true,
+          })
+          if (onToggleBlueprint && !isBlueprintOpen) {
+            onToggleBlueprint()
+          }
+        }
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   return (
     <div
       ref={containerRef}
@@ -543,6 +570,8 @@ export function CanvasViewport({
       onMouseLeave={handleMouseLeave}
       onClick={handleCanvasSurfaceClick}
       onDragStart={(e) => e.preventDefault()}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
       <div
         className={`canvas-surface ${showGrid ? `canvas-surface--grid-${gridStyle}` : ''}`}
@@ -556,6 +585,24 @@ export function CanvasViewport({
         <div className="canvas-surface__boundary-tag" aria-hidden="true">
           {canvasWidth} × {canvasHeight} px
         </div>
+
+        {/* Blueprint Underlay Layer */}
+        {blueprint?.url && blueprint?.visible && (
+          <div
+            className="canvas-blueprint"
+            style={{
+              top: 0,
+              left: 0,
+              width: `${canvasWidth}px`,
+              height: `${canvasHeight}px`,
+              backgroundImage: `url(${blueprint.url})`,
+              backgroundSize: 'contain',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              opacity: blueprint.opacity ?? 0.4,
+            }}
+          />
+        )}
         {objects.map((obj) => {
           const isSelected = obj.id === selectedObjectId
           const isSlot = isSlotType(obj.type)
@@ -702,7 +749,26 @@ export function CanvasViewport({
         >
           Grid
         </button>
+        <div className="canvas-control-divider" />
+        <button
+          type="button"
+          className={`canvas-control-btn canvas-control-btn--text ${blueprint?.url && blueprint?.visible ? 'canvas-control-btn--active' : ''}`}
+          onClick={onToggleBlueprint}
+          title="Blueprint Overlay Settings (B)"
+        >
+          Blueprint
+        </button>
       </div>
+
+      {/* Blueprint Settings Popover */}
+      {onUpdateBlueprint && (
+        <BlueprintPanel
+          blueprint={blueprint || {}}
+          onUpdateBlueprint={onUpdateBlueprint}
+          isOpen={isBlueprintOpen}
+          onClose={onToggleBlueprint}
+        />
+      )}
     </div>
   )
 }

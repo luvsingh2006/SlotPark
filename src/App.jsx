@@ -22,6 +22,21 @@ function App() {
   const [snapToGrid, setSnapToGrid] = useState(true)
   const [gridMode, setGridMode] = useState('dots')
   const [transform, setTransform] = useState({ zoom: 1, pan: { x: 40, y: 40 } })
+  const [blueprint, setBlueprint] = useState({
+    url: null,
+    name: null,
+    opacity: 0.4,
+    visible: true,
+  })
+  const [isBlueprintOpen, setIsBlueprintOpen] = useState(false)
+
+  const handleUpdateBlueprint = useCallback((updates) => {
+    setBlueprint((prev) => ({ ...prev, ...updates }))
+  }, [])
+
+  const handleToggleBlueprint = useCallback(() => {
+    setIsBlueprintOpen((prev) => !prev)
+  }, [])
 
   const handleToggleGrid = () => {
     setGridMode((prev) => {
@@ -53,6 +68,8 @@ function App() {
         setActiveTool('select')
       } else if (e.key.toLowerCase() === 'e') {
         setActiveTool('eraser')
+      } else if (e.key.toLowerCase() === 'b') {
+        setIsBlueprintOpen((prev) => !prev)
       } else if (e.key.toLowerCase() === 'g') {
         setSnapToGrid((prev) => !prev)
       } else if (e.key === 'Escape') {
@@ -271,6 +288,8 @@ function App() {
         snapToGrid={snapToGrid}
         onToggleSnap={() => setSnapToGrid((prev) => !prev)}
         gridSize={DEFAULT_GRID_SIZE}
+        blueprintActive={Boolean(blueprint.url && blueprint.visible)}
+        onToggleBlueprint={handleToggleBlueprint}
       />
 
       <main className="app-main">
@@ -304,6 +323,10 @@ function App() {
             showGrid={gridMode !== 'off'}
             gridStyle={gridMode === 'lines' ? 'lines' : 'dots'}
             onToggleGrid={handleToggleGrid}
+            blueprint={blueprint}
+            onUpdateBlueprint={handleUpdateBlueprint}
+            isBlueprintOpen={isBlueprintOpen}
+            onToggleBlueprint={handleToggleBlueprint}
           />
         </section>
 

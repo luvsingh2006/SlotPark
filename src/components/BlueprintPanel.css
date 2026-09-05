@@ -1,0 +1,244 @@
+/* Blueprint Settings Panel Popover */
+.blueprint-panel {
+  position: absolute;
+  bottom: 50px;
+  right: 16px;
+  width: 320px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: blueprintFadeIn 0.18s ease-out;
+}
+
+@keyframes blueprintFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.blueprint-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.blueprint-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #0f172a;
+}
+
+.blueprint-panel__title h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.blueprint-panel__close {
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.blueprint-panel__close:hover {
+  color: #0f172a;
+  background-color: #e2e8f0;
+}
+
+.blueprint-panel__body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.blueprint-empty-tip {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+  background-color: #f1f5f9;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.blueprint-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.blueprint-status__info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.blueprint-status__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #10b981;
+  flex-shrink: 0;
+}
+
+.blueprint-status__name {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: #334155;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.blueprint-status__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.btn-icon:hover {
+  color: #0f172a;
+  background-color: #e2e8f0;
+}
+
+.btn-icon--active {
+  color: #2563eb;
+}
+
+.blueprint-panel__buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.blueprint-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 7px 10px;
+}
+
+.blueprint-slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
+}
+
+.blueprint-slider-group__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.blueprint-slider-group__header label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #64748b;
+}
+
+.blueprint-slider-badge {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: #2563eb;
+  background-color: #eff6ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.blueprint-range-slider {
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  background: #e2e8f0;
+  outline: none;
+  cursor: pointer;
+  accent-color: #2563eb;
+}
+
+.blueprint-presets {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.blueprint-preset-btn {
+  flex: 1;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 3px 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.blueprint-preset-btn:hover:not(:disabled) {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.blueprint-preset-btn--active {
+  background-color: #eff6ff;
+  color: #2563eb;
+  border-color: #93c5fd;
+}
+
+.blueprint-preset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

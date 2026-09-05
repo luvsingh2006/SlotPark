@@ -67,9 +67,20 @@
   user-select: none;
 }
 
+.canvas-blueprint {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  z-index: 1;
+  transition: opacity 0.12s ease;
+}
+
 .canvas-object {
   position: absolute;
   box-sizing: border-box;
+  z-index: 2;
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;

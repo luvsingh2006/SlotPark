@@ -10,6 +10,7 @@ import {
   WallIcon,
   PillarIcon,
   SnapIcon,
+  BlueprintIcon,
 } from './Icons'
 import { OBJECT_TYPES } from '../utils/layoutModels'
 import './DesignerToolbar.css'
@@ -39,6 +40,8 @@ export function DesignerToolbar({
   snapToGrid = true,
   onToggleSnap,
   gridSize = 20,
+  blueprintActive = false,
+  onToggleBlueprint,
 }) {
   return (
     <div className="designer-toolbar" role="toolbar" aria-label="Layout designer tools">
@@ -118,6 +121,17 @@ export function DesignerToolbar({
           <SnapIcon size={16} />
           <span className="tool-btn__text">Snap ({gridSize}px)</span>
         </button>
+        {onToggleBlueprint && (
+          <button
+            type="button"
+            className={`tool-btn ${blueprintActive ? 'tool-btn--active' : ''}`}
+            onClick={onToggleBlueprint}
+            title="Blueprint Overlay Settings (B)"
+          >
+            <BlueprintIcon size={16} />
+            <span className="tool-btn__text">Blueprint</span>
+          </button>
+        )}
       </div>
 
       <div className="designer-toolbar__stats">

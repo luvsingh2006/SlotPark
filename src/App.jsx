@@ -34,6 +34,16 @@ function App() {
   const selectedObject = objects.find((obj) => obj.id === selectedId) || null
   const isSelectedSlot = selectedObject && isSlotType(selectedObject.type)
   const totalSlots = objects.filter((o) => isSlotType(o.type)).length
+  const selectedIndex = objects.findIndex((obj) => obj.id === selectedId)
+  const layerInfo =
+    selectedIndex !== -1
+      ? {
+          index: selectedIndex + 1,
+          total: objects.length,
+          isTop: selectedIndex === objects.length - 1,
+          isBottom: selectedIndex === 0,
+        }
+      : null
 
   // Quick keyboard tool switching (V = Select, E = Eraser)
   useEffect(() => {
@@ -63,6 +73,13 @@ function App() {
         if (e.key === 'ArrowUp') dy = -step
         if (e.key === 'ArrowDown') dy = step
         handleNudgeObject(selectedId, dx, dy)
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === '[' || e.key === ']') && selectedId) {
+        e.preventDefault()
+        if (e.key === ']') {
+          handleReorderObject(selectedId, e.shiftKey ? 'front' : 'forward')
+        } else {
+          handleReorderObject(selectedId, e.shiftKey ? 'back' : 'backward')
+        }
       } else if ((e.key === '[' || e.key === ']') && selectedId) {
         e.preventDefault()
         const angleStep = e.shiftKey ? 45 : 15
@@ -144,6 +161,30 @@ function App() {
       })
     )
   }
+
+  const handleReorderObject = useCallback((id, direction) => {
+    setObjects((prev) => {
+      const index = prev.findIndex((obj) => obj.id === id)
+      if (index === -1) return prev
+
+      const newObjects = [...prev]
+      const [item] = newObjects.splice(index, 1)
+
+      if (direction === 'front') {
+        newObjects.push(item)
+      } else if (direction === 'back') {
+        newObjects.unshift(item)
+      } else if (direction === 'forward') {
+        const targetIndex = Math.min(index + 1, newObjects.length)
+        newObjects.splice(targetIndex, 0, item)
+      } else if (direction === 'backward') {
+        const targetIndex = Math.max(index - 1, 0)
+        newObjects.splice(targetIndex, 0, item)
+      }
+
+      return newObjects
+    })
+  }, [])
 
   const handleUpdateSelectedSlot = (updates) => {
     if (selectedId) {
@@ -272,6 +313,8 @@ function App() {
           onDeselect={() => setSelectedId(null)}
           onDelete={handleDeleteObject}
           onDuplicate={handleDuplicateObject}
+          onReorder={handleReorderObject}
+          layerInfo={layerInfo}
         />
       </main>
     </div>

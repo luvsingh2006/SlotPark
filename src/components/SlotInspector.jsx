@@ -1,4 +1,10 @@
 import { isSlotType } from '../utils/layoutModels'
+import {
+  BringToFrontIcon,
+  SendToBackIcon,
+  MoveForwardIcon,
+  MoveBackwardIcon,
+} from './Icons'
 import './SlotInspector.css'
 
 const VEHICLE_OPTIONS = [
@@ -24,6 +30,8 @@ export function SlotInspector({
   onDeselect,
   onDelete,
   onDuplicate,
+  onReorder,
+  layerInfo,
 }) {
   if (!obj) {
     return (
@@ -217,6 +225,60 @@ export function SlotInspector({
             ))}
           </div>
         </div>
+
+        {/* Layer / Stacking Order (Z-Index) */}
+        {onReorder && layerInfo && (
+          <div className="form-group">
+            <div className="form-group__header">
+              <label>Arrange Layer</label>
+              <span className="layer-badge">
+                Layer {layerInfo.index} of {layerInfo.total}
+              </span>
+            </div>
+            <div className="layer-controls">
+              <button
+                type="button"
+                className="layer-btn"
+                disabled={layerInfo.isTop}
+                onClick={() => onReorder(obj.id, 'front')}
+                title="Bring to Front (Ctrl+Shift+])"
+              >
+                <BringToFrontIcon size={14} />
+                <span>To Front</span>
+              </button>
+              <button
+                type="button"
+                className="layer-btn"
+                disabled={layerInfo.isTop}
+                onClick={() => onReorder(obj.id, 'forward')}
+                title="Bring Forward (Ctrl+])"
+              >
+                <MoveForwardIcon size={14} />
+                <span>Forward</span>
+              </button>
+              <button
+                type="button"
+                className="layer-btn"
+                disabled={layerInfo.isBottom}
+                onClick={() => onReorder(obj.id, 'backward')}
+                title="Send Backward (Ctrl+[)"
+              >
+                <MoveBackwardIcon size={14} />
+                <span>Backward</span>
+              </button>
+              <button
+                type="button"
+                className="layer-btn"
+                disabled={layerInfo.isBottom}
+                onClick={() => onReorder(obj.id, 'back')}
+                title="Send to Back (Ctrl+Shift+[)"
+              >
+                <SendToBackIcon size={14} />
+                <span>To Back</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="slot-inspector__footer">

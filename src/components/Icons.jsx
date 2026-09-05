@@ -224,3 +224,82 @@ export function SnapIcon({ className = '', size = 18 }) {
   )
 }
 
+export function BringToFrontIcon({ className = '', size = 16 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect width="8" height="8" x="8" y="8" rx="1" />
+      <path d="M4 10a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+      <path d="M14 20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2" />
+    </svg>
+  )
+}
+
+export function SendToBackIcon({ className = '', size = 16 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect width="8" height="8" x="14" y="14" rx="1" />
+      <rect width="8" height="8" x="2" y="2" rx="1" />
+      <path d="M7 14v1a2 2 0 0 0 2 2h1" />
+      <path d="M14 7h1a2 2 0 0 1 2 2v1" />
+    </svg>
+  )
+}
+
+export function MoveForwardIcon({ className = '', size = 16 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="m18 15-6-6-6 6" />
+      <path d="M4 21h16" />
+    </svg>
+  )
+}
+
+export function MoveBackwardIcon({ className = '', size = 16 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="m6 9 6 6 6-6" />
+      <path d="M4 3h16" />
+    </svg>
+  )
+}
+

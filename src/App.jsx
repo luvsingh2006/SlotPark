@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { CanvasViewport } from './components/CanvasViewport'
 import { DesignerToolbar } from './components/DesignerToolbar'
 import { SlotInspector } from './components/SlotInspector'
@@ -8,6 +8,7 @@ import { ImportModal } from './components/ImportModal'
 import { ModeSwitcher } from './components/ModeSwitcher'
 import { VisitorCanvasView } from './components/VisitorCanvasView'
 import { TimeRangePicker } from './components/TimeRangePicker'
+import { getUnavailableSlotIds } from './utils/bookingHelpers'
 import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
   INITIAL_LAYOUT_OBJECTS,
@@ -43,6 +44,12 @@ function App() {
   const [selectedVisitorSlotId, setSelectedVisitorSlotId] = useState(null)
   const [bookingWindow, setBookingWindow] = useState(null)
   const [bookings, setBookings] = useState([])
+
+  const unavailableSlotIds = useMemo(() => {
+    if (!bookingWindow) return new Set()
+    const slotIds = objects.filter((o) => isSlotType(o.type)).map((o) => o.id)
+    return getUnavailableSlotIds(slotIds, bookingWindow.startTime, bookingWindow.endTime, bookings)
+  }, [objects, bookingWindow, bookings])
 
   const handleImportLayout = useCallback((importedData, mode = 'replace') => {
     if (!importedData || !importedData.objects) return
@@ -452,6 +459,8 @@ function App() {
               objects={objects}
               selectedSlotId={selectedVisitorSlotId}
               onSelectSlot={(slot) => setSelectedVisitorSlotId(slot.id)}
+              unavailableSlotIds={unavailableSlotIds}
+              hasActiveWindow={Boolean(bookingWindow)}
               canvasWidth={DEFAULT_CANVAS_CONFIG.width}
               canvasHeight={DEFAULT_CANVAS_CONFIG.height}
             />

@@ -35,6 +35,8 @@ export function VisitorCanvasView({
   objects = [],
   selectedSlotId = null,
   onSelectSlot,
+  unavailableSlotIds = new Set(),
+  hasActiveWindow = false,
   canvasWidth = DEFAULT_CANVAS_CONFIG.width,
   canvasHeight = DEFAULT_CANVAS_CONFIG.height,
 }) {
@@ -75,6 +77,7 @@ export function VisitorCanvasView({
           {objects.map((obj) => {
             const isSlot = isSlotType(obj.type)
             const isSelected = obj.id === selectedSlotId
+            const isUnavailable = hasActiveWindow && unavailableSlotIds.has(obj.id)
             const style = {
               position: 'absolute',
               left: `${obj.x}px`,
@@ -92,12 +95,15 @@ export function VisitorCanvasView({
                     id={obj.id}
                     label={obj.label}
                     vehicleType={obj.vehicleType}
-                    status={isSelected ? 'selected' : obj.status || 'available'}
+                    status={isSelected ? 'selected' : isUnavailable ? 'occupied' : 'available'}
                     rotation={obj.rotation}
                     width={obj.width}
                     height={obj.height}
                     section={obj.section}
-                    onClick={() => onSelectSlot && onSelectSlot(obj)}
+                    onClick={() => {
+                      if (isUnavailable) return
+                      onSelectSlot && onSelectSlot(obj)
+                    }}
                   />
                 ) : (
                   renderStructuralElement(obj)

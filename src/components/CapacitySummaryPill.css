@@ -1,0 +1,28 @@
+.capacity-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  font-size: 12px;
+  color: #065f46;
+  width: fit-content;
+}
+
+.capacity-pill__count {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.capacity-pill__hint {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.capacity-pill--low {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}

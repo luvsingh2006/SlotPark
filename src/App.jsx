@@ -8,6 +8,7 @@ import { ImportModal } from './components/ImportModal'
 import { ModeSwitcher } from './components/ModeSwitcher'
 import { VisitorCanvasView } from './components/VisitorCanvasView'
 import { TimeRangePicker } from './components/TimeRangePicker'
+import { CapacitySummaryPill } from './components/CapacitySummaryPill'
 import { getUnavailableSlotIds } from './utils/bookingHelpers'
 import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
@@ -454,6 +455,12 @@ function App() {
             </div>
 
             <TimeRangePicker onChange={setBookingWindow} />
+
+            <CapacitySummaryPill
+              objects={objects}
+              unavailableSlotIds={unavailableSlotIds}
+              hasActiveWindow={Boolean(bookingWindow)}
+            />
 
             <VisitorCanvasView
               objects={objects}

@@ -35,6 +35,7 @@ export function VisitorCanvasView({
   objects = [],
   selectedSlotId = null,
   onSelectSlot,
+  onSelectUnavailableSlot,
   unavailableSlotIds = new Set(),
   hasActiveWindow = false,
   highlightType = null,
@@ -105,7 +106,10 @@ export function VisitorCanvasView({
                     height={obj.height}
                     section={obj.section}
                     onClick={() => {
-                      if (isUnavailable) return
+                      if (isUnavailable) {
+                        onSelectUnavailableSlot && onSelectUnavailableSlot(obj)
+                        return
+                      }
                       onSelectSlot && onSelectSlot(obj)
                     }}
                   />

@@ -10,6 +10,7 @@ import { VisitorCanvasView } from './components/VisitorCanvasView'
 import { TimeRangePicker } from './components/TimeRangePicker'
 import { CapacitySummaryPill } from './components/CapacitySummaryPill'
 import { VehicleTypeFilterBar } from './components/VehicleTypeFilterBar'
+import { useToast, ToastViewport } from './components/Toast'
 import { getUnavailableSlotIds } from './utils/bookingHelpers'
 import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
@@ -47,6 +48,7 @@ function App() {
   const [bookingWindow, setBookingWindow] = useState(null)
   const [bookings, setBookings] = useState([])
   const [visitorTypeFilter, setVisitorTypeFilter] = useState(null)
+  const { toasts, showToast } = useToast()
 
   const unavailableSlotIds = useMemo(() => {
     if (!bookingWindow) return new Set()
@@ -470,6 +472,9 @@ function App() {
               objects={objects}
               selectedSlotId={selectedVisitorSlotId}
               onSelectSlot={(slot) => setSelectedVisitorSlotId(slot.id)}
+              onSelectUnavailableSlot={(slot) =>
+                showToast(`Slot ${slot.label || slot.id} is already booked for this time window.`)
+              }
               unavailableSlotIds={unavailableSlotIds}
               hasActiveWindow={Boolean(bookingWindow)}
               highlightType={visitorTypeFilter}
@@ -479,6 +484,8 @@ function App() {
           </section>
         </main>
       )}
+
+      <ToastViewport toasts={toasts} />
     </div>
   )
 }

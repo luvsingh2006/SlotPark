@@ -7,6 +7,7 @@ import { ExportModal } from './components/ExportModal'
 import { ImportModal } from './components/ImportModal'
 import { ModeSwitcher } from './components/ModeSwitcher'
 import { VisitorCanvasView } from './components/VisitorCanvasView'
+import { TimeRangePicker } from './components/TimeRangePicker'
 import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
   INITIAL_LAYOUT_OBJECTS,
@@ -40,6 +41,7 @@ function App() {
   })
   const [isBlueprintOpen, setIsBlueprintOpen] = useState(false)
   const [selectedVisitorSlotId, setSelectedVisitorSlotId] = useState(null)
+  const [bookingWindow, setBookingWindow] = useState(null)
 
   const handleImportLayout = useCallback((importedData, mode = 'replace') => {
     if (!importedData || !importedData.objects) return
@@ -442,6 +444,8 @@ function App() {
                 <span className="panel-hint">Select an available slot to reserve it</span>
               </div>
             </div>
+
+            <TimeRangePicker onChange={setBookingWindow} />
 
             <VisitorCanvasView
               objects={objects}

@@ -5,6 +5,7 @@ import { SlotInspector } from './components/SlotInspector'
 import { ParkingStatsBar } from './components/ParkingStatsBar'
 import { ExportModal } from './components/ExportModal'
 import { ImportModal } from './components/ImportModal'
+import { ModeSwitcher } from './components/ModeSwitcher'
 import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
   INITIAL_LAYOUT_OBJECTS,
@@ -20,6 +21,7 @@ import { snapPointToGrid, clampToBounds, DEFAULT_GRID_SIZE } from './utils/gridU
 import './App.css'
 
 function App() {
+  const [mode, setMode] = useState('admin')
   const [objects, setObjects] = useState(INITIAL_LAYOUT_OBJECTS)
   const [selectedId, setSelectedId] = useState('slot-a01')
   const [activeTool, setActiveTool] = useState('select')
@@ -317,110 +319,121 @@ function App() {
           <span className="app-header__subtitle">Spatial Layout Designer</span>
         </div>
         <div className="app-header__actions">
-          <button
-            type="button"
-            className="btn btn--subtle"
-            onClick={() => setIsImportOpen(true)}
-            title="Import Layout from JSON"
-          >
-            <UploadIcon size={14} />
-            <span>Import</span>
-          </button>
-          <button
-            type="button"
-            className="btn btn--subtle"
-            onClick={() => setIsExportOpen(true)}
-            title="Export Layout as JSON"
-          >
-            <DownloadIcon size={14} />
-            <span>Export</span>
-          </button>
-          <button type="button" className="btn btn--primary" onClick={handleAddSlot}>
-            Add Slot
-          </button>
+          <ModeSwitcher mode={mode} onChange={setMode} />
+          {mode === 'admin' && (
+            <>
+              <button
+                type="button"
+                className="btn btn--subtle"
+                onClick={() => setIsImportOpen(true)}
+                title="Import Layout from JSON"
+              >
+                <UploadIcon size={14} />
+                <span>Import</span>
+              </button>
+              <button
+                type="button"
+                className="btn btn--subtle"
+                onClick={() => setIsExportOpen(true)}
+                title="Export Layout as JSON"
+              >
+                <DownloadIcon size={14} />
+                <span>Export</span>
+              </button>
+              <button type="button" className="btn btn--primary" onClick={handleAddSlot}>
+                Add Slot
+              </button>
+            </>
+          )}
         </div>
       </header>
 
-      <DesignerToolbar
-        activeTool={activeTool}
-        onSelectTool={setActiveTool}
-        totalSlots={totalSlots}
-        snapToGrid={snapToGrid}
-        onToggleSnap={() => setSnapToGrid((prev) => !prev)}
-        gridSize={DEFAULT_GRID_SIZE}
-        blueprintActive={Boolean(blueprint.url && blueprint.visible)}
-        onToggleBlueprint={handleToggleBlueprint}
-      />
-
-      <ParkingStatsBar
-        objects={objects}
-        activeFilter={statsFilter}
-        onSelectFilter={setStatsFilter}
-      />
-
-      <main className="app-main">
-        <section className="designer-canvas-section">
-          <div className="panel-header">
-            <div>
-              <h2>Parking Floor Plan</h2>
-              <span className="panel-hint">
-                {activeTool === 'select'
-                  ? 'Drag or Arrow keys to nudge • Shift+Arrow 20px • Drag canvas to pan • Scroll to zoom'
-                  : activeTool === 'eraser'
-                  ? 'Click any element to remove it'
-                  : `Click canvas to place ${activeTool} (Esc to cancel)`}
-              </span>
-            </div>
-          </div>
-
-          <CanvasViewport
-            objects={objects}
-            selectedObjectId={selectedId}
-            onSelectObject={handleSelectObject}
-            onUpdateObject={handleUpdateObject}
-            onCanvasClick={handleCanvasClick}
-            onPlaceObject={handlePlaceObject}
-            zoom={transform.zoom}
-            pan={transform.pan}
-            onTransformChange={setTransform}
+      {mode === 'admin' ? (
+        <>
+          <DesignerToolbar
             activeTool={activeTool}
+            onSelectTool={setActiveTool}
+            totalSlots={totalSlots}
             snapToGrid={snapToGrid}
+            onToggleSnap={() => setSnapToGrid((prev) => !prev)}
             gridSize={DEFAULT_GRID_SIZE}
-            showGrid={gridMode !== 'off'}
-            gridStyle={gridMode === 'lines' ? 'lines' : 'dots'}
-            onToggleGrid={handleToggleGrid}
-            blueprint={blueprint}
-            onUpdateBlueprint={handleUpdateBlueprint}
-            isBlueprintOpen={isBlueprintOpen}
+            blueprintActive={Boolean(blueprint.url && blueprint.visible)}
             onToggleBlueprint={handleToggleBlueprint}
-            statsFilter={statsFilter}
           />
-        </section>
 
-        <SlotInspector
-          slot={selectedObject}
-          onUpdate={handleUpdateSelectedSlot}
-          onDeselect={() => setSelectedId(null)}
-          onDelete={handleDeleteObject}
-          onDuplicate={handleDuplicateObject}
-          onReorder={handleReorderObject}
-          layerInfo={layerInfo}
-        />
-      </main>
+          <ParkingStatsBar
+            objects={objects}
+            activeFilter={statsFilter}
+            onSelectFilter={setStatsFilter}
+          />
 
-      <ExportModal
-        isOpen={isExportOpen}
-        onClose={() => setIsExportOpen(false)}
-        objects={objects}
-        blueprint={blueprint}
-      />
+          <main className="app-main">
+            <section className="designer-canvas-section">
+              <div className="panel-header">
+                <div>
+                  <h2>Parking Floor Plan</h2>
+                  <span className="panel-hint">
+                    {activeTool === 'select'
+                      ? 'Drag or Arrow keys to nudge • Shift+Arrow 20px • Drag canvas to pan • Scroll to zoom'
+                      : activeTool === 'eraser'
+                      ? 'Click any element to remove it'
+                      : `Click canvas to place ${activeTool} (Esc to cancel)`}
+                  </span>
+                </div>
+              </div>
 
-      <ImportModal
-        isOpen={isImportOpen}
-        onClose={() => setIsImportOpen(false)}
-        onImportLayout={handleImportLayout}
-        canvasBounds={{ width: DEFAULT_CANVAS_CONFIG.width, height: DEFAULT_CANVAS_CONFIG.height }}
-      />
+              <CanvasViewport
+                objects={objects}
+                selectedObjectId={selectedId}
+                onSelectObject={handleSelectObject}
+                onUpdateObject={handleUpdateObject}
+                onCanvasClick={handleCanvasClick}
+                onPlaceObject={handlePlaceObject}
+                zoom={transform.zoom}
+                pan={transform.pan}
+                onTransformChange={setTransform}
+                activeTool={activeTool}
+                snapToGrid={snapToGrid}
+                gridSize={DEFAULT_GRID_SIZE}
+                showGrid={gridMode !== 'off'}
+                gridStyle={gridMode === 'lines' ? 'lines' : 'dots'}
+                onToggleGrid={handleToggleGrid}
+                blueprint={blueprint}
+                onUpdateBlueprint={handleUpdateBlueprint}
+                isBlueprintOpen={isBlueprintOpen}
+                onToggleBlueprint={handleToggleBlueprint}
+                statsFilter={statsFilter}
+              />
+            </section>
+
+            <SlotInspector
+              slot={selectedObject}
+              onUpdate={handleUpdateSelectedSlot}
+              onDeselect={() => setSelectedId(null)}
+              onDelete={handleDeleteObject}
+              onDuplicate={handleDuplicateObject}
+              onReorder={handleReorderObject}
+              layerInfo={layerInfo}
+            />
+          </main>
+
+          <ExportModal
+            isOpen={isExportOpen}
+            onClose={() => setIsExportOpen(false)}
+            objects={objects}
+            blueprint={blueprint}
+          />
+
+          <ImportModal
+            isOpen={isImportOpen}
+            onClose={() => setIsImportOpen(false)}
+            onImportLayout={handleImportLayout}
+            canvasBounds={{ width: DEFAULT_CANVAS_CONFIG.width, height: DEFAULT_CANVAS_CONFIG.height }}
+          />
+        </>
+      ) : (
+        <main className="app-main" />
+      )}
     </div>
   )
 }

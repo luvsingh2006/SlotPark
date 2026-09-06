@@ -42,6 +42,7 @@ function App() {
   const [isBlueprintOpen, setIsBlueprintOpen] = useState(false)
   const [selectedVisitorSlotId, setSelectedVisitorSlotId] = useState(null)
   const [bookingWindow, setBookingWindow] = useState(null)
+  const [bookings, setBookings] = useState([])
 
   const handleImportLayout = useCallback((importedData, mode = 'replace') => {
     if (!importedData || !importedData.objects) return

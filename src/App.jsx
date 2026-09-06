@@ -9,6 +9,7 @@ import { ModeSwitcher } from './components/ModeSwitcher'
 import { VisitorCanvasView } from './components/VisitorCanvasView'
 import { TimeRangePicker } from './components/TimeRangePicker'
 import { CapacitySummaryPill } from './components/CapacitySummaryPill'
+import { VehicleTypeFilterBar } from './components/VehicleTypeFilterBar'
 import { getUnavailableSlotIds } from './utils/bookingHelpers'
 import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
@@ -45,6 +46,7 @@ function App() {
   const [selectedVisitorSlotId, setSelectedVisitorSlotId] = useState(null)
   const [bookingWindow, setBookingWindow] = useState(null)
   const [bookings, setBookings] = useState([])
+  const [visitorTypeFilter, setVisitorTypeFilter] = useState(null)
 
   const unavailableSlotIds = useMemo(() => {
     if (!bookingWindow) return new Set()
@@ -462,12 +464,15 @@ function App() {
               hasActiveWindow={Boolean(bookingWindow)}
             />
 
+            <VehicleTypeFilterBar activeType={visitorTypeFilter} onChange={setVisitorTypeFilter} />
+
             <VisitorCanvasView
               objects={objects}
               selectedSlotId={selectedVisitorSlotId}
               onSelectSlot={(slot) => setSelectedVisitorSlotId(slot.id)}
               unavailableSlotIds={unavailableSlotIds}
               hasActiveWindow={Boolean(bookingWindow)}
+              highlightType={visitorTypeFilter}
               canvasWidth={DEFAULT_CANVAS_CONFIG.width}
               canvasHeight={DEFAULT_CANVAS_CONFIG.height}
             />

@@ -37,6 +37,7 @@ export function VisitorCanvasView({
   onSelectSlot,
   unavailableSlotIds = new Set(),
   hasActiveWindow = false,
+  highlightType = null,
   canvasWidth = DEFAULT_CANVAS_CONFIG.width,
   canvasHeight = DEFAULT_CANVAS_CONFIG.height,
 }) {
@@ -78,6 +79,7 @@ export function VisitorCanvasView({
             const isSlot = isSlotType(obj.type)
             const isSelected = obj.id === selectedSlotId
             const isUnavailable = hasActiveWindow && unavailableSlotIds.has(obj.id)
+            const isDimmed = isSlot && highlightType && obj.type !== highlightType
             const style = {
               position: 'absolute',
               left: `${obj.x}px`,
@@ -86,6 +88,8 @@ export function VisitorCanvasView({
               height: `${obj.height}px`,
               transform: obj.rotation && !isSlot ? `rotate(${obj.rotation}deg)` : undefined,
               transformOrigin: 'center center',
+              opacity: isDimmed ? 0.35 : 1,
+              transition: 'opacity 0.15s ease',
             }
 
             return (

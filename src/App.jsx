@@ -6,6 +6,7 @@ import { ParkingStatsBar } from './components/ParkingStatsBar'
 import { ExportModal } from './components/ExportModal'
 import { ImportModal } from './components/ImportModal'
 import { ModeSwitcher } from './components/ModeSwitcher'
+import { VisitorCanvasView } from './components/VisitorCanvasView'
 import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
   INITIAL_LAYOUT_OBJECTS,
@@ -38,6 +39,7 @@ function App() {
     visible: true,
   })
   const [isBlueprintOpen, setIsBlueprintOpen] = useState(false)
+  const [selectedVisitorSlotId, setSelectedVisitorSlotId] = useState(null)
 
   const handleImportLayout = useCallback((importedData, mode = 'replace') => {
     if (!importedData || !importedData.objects) return
@@ -432,7 +434,24 @@ function App() {
           />
         </>
       ) : (
-        <main className="app-main" />
+        <main className="app-main">
+          <section className="designer-canvas-section">
+            <div className="panel-header">
+              <div>
+                <h2>Parking Floor Plan</h2>
+                <span className="panel-hint">Select an available slot to reserve it</span>
+              </div>
+            </div>
+
+            <VisitorCanvasView
+              objects={objects}
+              selectedSlotId={selectedVisitorSlotId}
+              onSelectSlot={(slot) => setSelectedVisitorSlotId(slot.id)}
+              canvasWidth={DEFAULT_CANVAS_CONFIG.width}
+              canvasHeight={DEFAULT_CANVAS_CONFIG.height}
+            />
+          </section>
+        </main>
       )}
     </div>
   )

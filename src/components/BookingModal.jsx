@@ -1,24 +1,36 @@
 import { useState } from 'react'
 import { formatDisplayTime, formatDuration } from '../utils/timeHelpers'
+import { validateBookingForm } from '../utils/bookingValidation'
 import './BookingModal.css'
 
 /**
  * Reservation dialog shown when a visitor confirms a slot + time window.
- * Collects driver name and vehicle plate. Validation is added in the next
- * commit — for now this just captures the raw input values.
+ * Collects driver name and vehicle plate, validated client-side before
+ * the reservation can be confirmed.
  */
 export function BookingModal({ isOpen = false, onClose, slot, bookingWindow, onConfirm }) {
   const [driverName, setDriverName] = useState('')
   const [vehiclePlate, setVehiclePlate] = useState('')
+  const [touched, setTouched] = useState({})
 
   if (!isOpen || !slot || !bookingWindow) return null
 
+  const errors = validateBookingForm({ driverName, vehiclePlate })
+  const isValid = Object.keys(errors).length === 0
+
+  const handleBlur = (field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }))
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
+    setTouched({ driverName: true, vehiclePlate: true })
+    if (!isValid) return
+
     onConfirm({
       slotId: slot.id,
-      driverName,
-      vehiclePlate,
+      driverName: driverName.trim(),
+      vehiclePlate: vehiclePlate.trim(),
       startTime: bookingWindow.startTime,
       endTime: bookingWindow.endTime,
     })
@@ -57,12 +69,15 @@ export function BookingModal({ isOpen = false, onClose, slot, bookingWindow, onC
               <input
                 id="booking-driver-name"
                 type="text"
-                className="form-input"
+                className={`form-input ${touched.driverName && errors.driverName ? 'form-input--error' : ''}`}
                 value={driverName}
                 placeholder="e.g. Ramesh Kumar"
                 onChange={(e) => setDriverName(e.target.value)}
-                required
+                onBlur={() => handleBlur('driverName')}
               />
+              {touched.driverName && errors.driverName && (
+                <span className="form-error">{errors.driverName}</span>
+              )}
             </div>
 
             <div className="form-group">
@@ -70,12 +85,15 @@ export function BookingModal({ isOpen = false, onClose, slot, bookingWindow, onC
               <input
                 id="booking-vehicle-plate"
                 type="text"
-                className="form-input"
+                className={`form-input ${touched.vehiclePlate && errors.vehiclePlate ? 'form-input--error' : ''}`}
                 value={vehiclePlate}
                 placeholder="e.g. DL 4C AB 1234"
                 onChange={(e) => setVehiclePlate(e.target.value.toUpperCase())}
-                required
+                onBlur={() => handleBlur('vehiclePlate')}
               />
+              {touched.vehiclePlate && errors.vehiclePlate && (
+                <span className="form-error">{errors.vehiclePlate}</span>
+              )}
             </div>
 
             <p className="booking-modal__fee">Fee: FREE (Demo Project)</p>
@@ -85,7 +103,7 @@ export function BookingModal({ isOpen = false, onClose, slot, bookingWindow, onC
             <button type="button" className="btn btn--subtle" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn btn--primary">
+            <button type="submit" className="btn btn--primary" disabled={!isValid}>
               Confirm Reservation
             </button>
           </div>

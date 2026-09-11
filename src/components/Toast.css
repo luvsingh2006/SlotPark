@@ -25,6 +25,12 @@
   color: #92400e;
 }
 
+.toast--success {
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;

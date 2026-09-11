@@ -1,0 +1,23 @@
+.booking-modal__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #1e3a8a;
+  margin-bottom: 14px;
+}
+
+.booking-modal__duration {
+  font-weight: 600;
+}
+
+.booking-modal__fee {
+  font-size: 13px;
+  color: #059669;
+  font-weight: 600;
+  margin-top: 6px;
+}

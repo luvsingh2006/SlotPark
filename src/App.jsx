@@ -11,6 +11,7 @@ import { TimeRangePicker } from './components/TimeRangePicker'
 import { CapacitySummaryPill } from './components/CapacitySummaryPill'
 import { VehicleTypeFilterBar } from './components/VehicleTypeFilterBar'
 import { useToast, ToastViewport } from './components/Toast'
+import { BookingModal } from './components/BookingModal'
 import { getUnavailableSlotIds } from './utils/bookingHelpers'
 import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
@@ -49,12 +50,24 @@ function App() {
   const [bookings, setBookings] = useState([])
   const [visitorTypeFilter, setVisitorTypeFilter] = useState(null)
   const { toasts, showToast } = useToast()
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
 
   const unavailableSlotIds = useMemo(() => {
     if (!bookingWindow) return new Set()
     const slotIds = objects.filter((o) => isSlotType(o.type)).map((o) => o.id)
     return getUnavailableSlotIds(slotIds, bookingWindow.startTime, bookingWindow.endTime, bookings)
   }, [objects, bookingWindow, bookings])
+
+  const selectedVisitorSlot = objects.find((o) => o.id === selectedVisitorSlotId) || null
+
+  const handleConfirmBooking = ({ slotId, driverName, vehiclePlate, startTime, endTime }) => {
+    setBookings((prev) => [
+      ...prev,
+      { id: `booking-${Date.now()}`, slotId, driverName, vehiclePlate, startTime, endTime, status: 'active' },
+    ])
+    setIsBookingModalOpen(false)
+    showToast(`Reservation confirmed for slot ${selectedVisitorSlot?.label || slotId}.`, 'success')
+  }
 
   const handleImportLayout = useCallback((importedData, mode = 'replace') => {
     if (!importedData || !importedData.objects) return
@@ -471,7 +484,10 @@ function App() {
             <VisitorCanvasView
               objects={objects}
               selectedSlotId={selectedVisitorSlotId}
-              onSelectSlot={(slot) => setSelectedVisitorSlotId(slot.id)}
+              onSelectSlot={(slot) => {
+                setSelectedVisitorSlotId(slot.id)
+                setIsBookingModalOpen(true)
+              }}
               onSelectUnavailableSlot={(slot) =>
                 showToast(`Slot ${slot.label || slot.id} is already booked for this time window.`)
               }
@@ -484,6 +500,14 @@ function App() {
           </section>
         </main>
       )}
+
+      <BookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        slot={selectedVisitorSlot}
+        bookingWindow={bookingWindow}
+        onConfirm={handleConfirmBooking}
+      />
 
       <ToastViewport toasts={toasts} />
     </div>

@@ -19,6 +19,19 @@ export const BOOKING_STATUS = {
 }
 
 /**
+ * Generate a short, human-readable booking reference code, e.g. "PS-7K2M9A".
+ * Not cryptographically unique — fine for a demo project's ticket display.
+ */
+export function generateBookingReference() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // no 0/O/1/I to avoid confusion
+  let code = ''
+  for (let i = 0; i < 6; i += 1) {
+    code += chars[Math.floor(Math.random() * chars.length)]
+  }
+  return `PS-${code}`
+}
+
+/**
  * Two time intervals [aStart, aEnd] and [bStart, bEnd] overlap if
  * aStart < bEnd AND aEnd > bStart. Equal-length back-to-back bookings
  * (one ends exactly when the other starts) do NOT count as a conflict.

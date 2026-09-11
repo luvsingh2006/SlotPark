@@ -12,7 +12,8 @@ import { CapacitySummaryPill } from './components/CapacitySummaryPill'
 import { VehicleTypeFilterBar } from './components/VehicleTypeFilterBar'
 import { useToast, ToastViewport } from './components/Toast'
 import { BookingModal } from './components/BookingModal'
-import { getUnavailableSlotIds } from './utils/bookingHelpers'
+import { ParkingPassCard } from './components/ParkingPassCard'
+import { getUnavailableSlotIds, generateBookingReference } from './utils/bookingHelpers'
 import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
   INITIAL_LAYOUT_OBJECTS,
@@ -51,6 +52,7 @@ function App() {
   const [visitorTypeFilter, setVisitorTypeFilter] = useState(null)
   const { toasts, showToast } = useToast()
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
+  const [confirmedBooking, setConfirmedBooking] = useState(null)
 
   const unavailableSlotIds = useMemo(() => {
     if (!bookingWindow) return new Set()
@@ -61,12 +63,19 @@ function App() {
   const selectedVisitorSlot = objects.find((o) => o.id === selectedVisitorSlotId) || null
 
   const handleConfirmBooking = ({ slotId, driverName, vehiclePlate, startTime, endTime }) => {
-    setBookings((prev) => [
-      ...prev,
-      { id: `booking-${Date.now()}`, slotId, driverName, vehiclePlate, startTime, endTime, status: 'active' },
-    ])
+    const newBooking = {
+      id: `booking-${Date.now()}`,
+      reference: generateBookingReference(),
+      slotId,
+      driverName,
+      vehiclePlate,
+      startTime,
+      endTime,
+      status: 'active',
+    }
+    setBookings((prev) => [...prev, newBooking])
     setIsBookingModalOpen(false)
-    showToast(`Reservation confirmed for slot ${selectedVisitorSlot?.label || slotId}.`, 'success')
+    setConfirmedBooking(newBooking)
   }
 
   const handleImportLayout = useCallback((importedData, mode = 'replace') => {
@@ -508,6 +517,42 @@ function App() {
         bookingWindow={bookingWindow}
         onConfirm={handleConfirmBooking}
       />
+
+      {confirmedBooking && (
+        <div className="modal-backdrop" onClick={() => setConfirmedBooking(null)}>
+          <div
+            className="modal-card"
+            role="dialog"
+            aria-label="Booking Confirmed"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-card__header">
+              <div className="modal-card__title">
+                <h3>Booking Confirmed</h3>
+              </div>
+              <button
+                type="button"
+                className="modal-card__close"
+                onClick={() => setConfirmedBooking(null)}
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-card__body">
+              <ParkingPassCard
+                booking={confirmedBooking}
+                slotLabel={objects.find((o) => o.id === confirmedBooking.slotId)?.label || confirmedBooking.slotId}
+              />
+            </div>
+            <div className="modal-card__footer">
+              <button type="button" className="btn btn--primary" onClick={() => setConfirmedBooking(null)}>
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ToastViewport toasts={toasts} />
     </div>

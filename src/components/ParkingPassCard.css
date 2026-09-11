@@ -1,0 +1,103 @@
+.parking-pass {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  background-color: #ffffff;
+}
+
+.parking-pass__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+}
+
+.parking-pass__eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
+  margin-bottom: 2px;
+}
+
+.parking-pass__slot {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.parking-pass__status {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.parking-pass__perforation {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 6px;
+  background-color: #ffffff;
+  position: relative;
+  top: -1px;
+}
+
+.parking-pass__perforation span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #f3f4f6;
+  margin-top: -3px;
+}
+
+.parking-pass__body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.parking-pass__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.parking-pass__label {
+  color: #6b7280;
+}
+
+.parking-pass__value {
+  font-weight: 600;
+  color: #111827;
+}
+
+.parking-pass__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background-color: #f8fafc;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.parking-pass__ref-label {
+  font-size: 11px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.parking-pass__ref-code {
+  font-family: var(--font-mono, monospace);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #1d4ed8;
+}

@@ -15,6 +15,7 @@ import { BookingModal } from './components/BookingModal'
 import { ParkingPassCard } from './components/ParkingPassCard'
 import { ActiveBookingsDrawer } from './components/ActiveBookingsDrawer'
 import { getUnavailableSlotIds, generateBookingReference, BOOKING_STATUS } from './utils/bookingHelpers'
+import { useLocalStorageSync } from './hooks/useLocalStorageSync'
 import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
   INITIAL_LAYOUT_OBJECTS,
@@ -31,7 +32,7 @@ import './App.css'
 
 function App() {
   const [mode, setMode] = useState('admin')
-  const [objects, setObjects] = useState(INITIAL_LAYOUT_OBJECTS)
+  const [objects, setObjects] = useLocalStorageSync('parkslot_layout', INITIAL_LAYOUT_OBJECTS)
   const [selectedId, setSelectedId] = useState('slot-a01')
   const [activeTool, setActiveTool] = useState('select')
   const [snapToGrid, setSnapToGrid] = useState(true)
@@ -49,7 +50,7 @@ function App() {
   const [isBlueprintOpen, setIsBlueprintOpen] = useState(false)
   const [selectedVisitorSlotId, setSelectedVisitorSlotId] = useState(null)
   const [bookingWindow, setBookingWindow] = useState(null)
-  const [bookings, setBookings] = useState([])
+  const [bookings, setBookings] = useLocalStorageSync('parkslot_bookings', [])
   const [visitorTypeFilter, setVisitorTypeFilter] = useState(null)
   const { toasts, showToast } = useToast()
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)

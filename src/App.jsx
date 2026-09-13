@@ -497,7 +497,7 @@ function App() {
           />
         </>
       ) : (
-        <main className="app-main">
+        <main className="app-main app-main--single">
           <section className="designer-canvas-section">
             <div className="panel-header">
               <div>

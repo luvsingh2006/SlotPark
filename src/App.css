@@ -41,6 +41,11 @@
   align-items: start;
 }
 
+.app-main--single {
+  grid-template-columns: minmax(0, 1000px);
+  justify-content: center;
+}
+
 @media (max-width: 960px) {
   .app-main {
     grid-template-columns: 1fr;

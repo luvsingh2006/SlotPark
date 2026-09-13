@@ -1,13 +1,16 @@
 .visitor-canvas-container {
   width: 100%;
-  overflow-x: auto;
+  overflow: hidden;
   background-color: #f3f4f6;
   border-radius: 6px;
+  display: flex;
+  justify-content: center;
 }
 
 .visitor-canvas-scaler {
   position: relative;
-  width: 100%;
+  overflow: hidden;
+  border-radius: 6px;
 }
 
 .visitor-canvas-surface {

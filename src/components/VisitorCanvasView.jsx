@@ -65,7 +65,10 @@ export function VisitorCanvasView({
     <div className="visitor-canvas-container" ref={containerRef}>
       <div
         className="visitor-canvas-scaler"
-        style={{ height: `${canvasHeight * scale}px` }}
+        style={{
+          width: `${canvasWidth * scale}px`,
+          height: `${canvasHeight * scale}px`,
+        }}
       >
         <div
           className="visitor-canvas-surface"

@@ -1,0 +1,15 @@
+.template-selector {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.template-selector:focus {
+  outline: none;
+  border-color: #2563eb;
+}

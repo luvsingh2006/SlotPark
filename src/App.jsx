@@ -16,6 +16,8 @@ import { ParkingPassCard } from './components/ParkingPassCard'
 import { ActiveBookingsDrawer } from './components/ActiveBookingsDrawer'
 import { getUnavailableSlotIds, generateBookingReference, BOOKING_STATUS } from './utils/bookingHelpers'
 import { useLocalStorageSync } from './hooks/useLocalStorageSync'
+import { TemplateSelector } from './components/TemplateSelector'
+import { getTemplateById } from './utils/layoutTemplates'
 import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
   INITIAL_LAYOUT_OBJECTS,
@@ -86,6 +88,14 @@ function App() {
       prev.map((b) => (b.id === bookingId ? { ...b, status: BOOKING_STATUS.CANCELLED } : b))
     )
     showToast('Reservation cancelled — the slot is free again.', 'success')
+  }
+
+  const handleLoadTemplate = (templateId) => {
+    const template = getTemplateById(templateId)
+    if (!template) return
+    setObjects(template.objects)
+    setSelectedId(null)
+    showToast(`Loaded "${template.name}" template.`, 'success')
   }
 
   const handleImportLayout = useCallback((importedData, mode = 'replace') => {
@@ -371,6 +381,7 @@ function App() {
           <ModeSwitcher mode={mode} onChange={setMode} />
           {mode === 'admin' && (
             <>
+              <TemplateSelector onSelectTemplate={handleLoadTemplate} />
               <button
                 type="button"
                 className="btn btn--subtle"

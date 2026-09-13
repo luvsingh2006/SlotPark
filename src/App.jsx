@@ -14,7 +14,7 @@ import { useToast, ToastViewport } from './components/Toast'
 import { BookingModal } from './components/BookingModal'
 import { ParkingPassCard } from './components/ParkingPassCard'
 import { ActiveBookingsDrawer } from './components/ActiveBookingsDrawer'
-import { getUnavailableSlotIds, generateBookingReference } from './utils/bookingHelpers'
+import { getUnavailableSlotIds, generateBookingReference, BOOKING_STATUS } from './utils/bookingHelpers'
 import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
   INITIAL_LAYOUT_OBJECTS,
@@ -73,11 +73,18 @@ function App() {
       vehiclePlate,
       startTime,
       endTime,
-      status: 'active',
+      status: BOOKING_STATUS.ACTIVE,
     }
     setBookings((prev) => [...prev, newBooking])
     setIsBookingModalOpen(false)
     setConfirmedBooking(newBooking)
+  }
+
+  const handleCancelBooking = (bookingId) => {
+    setBookings((prev) =>
+      prev.map((b) => (b.id === bookingId ? { ...b, status: BOOKING_STATUS.CANCELLED } : b))
+    )
+    showToast('Reservation cancelled — the slot is free again.', 'success')
   }
 
   const handleImportLayout = useCallback((importedData, mode = 'replace') => {
@@ -388,7 +395,7 @@ function App() {
           )}
           {mode === 'visitor' && (
             <button type="button" className="btn btn--subtle" onClick={() => setIsBookingsDrawerOpen(true)}>
-              My Bookings ({bookings.filter((b) => b.status === 'active').length})
+              My Bookings ({bookings.filter((b) => b.status === BOOKING_STATUS.ACTIVE).length})
             </button>
           )}
         </div>
@@ -566,6 +573,7 @@ function App() {
         onClose={() => setIsBookingsDrawerOpen(false)}
         bookings={bookings}
         objects={objects}
+        onCancelBooking={handleCancelBooking}
       />
 
       <ToastViewport toasts={toasts} />

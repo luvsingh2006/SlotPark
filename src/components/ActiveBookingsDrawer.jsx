@@ -2,7 +2,7 @@ import { formatDisplayTime, formatDuration } from '../utils/timeHelpers'
 import { BOOKING_STATUS } from '../utils/bookingHelpers'
 import './ActiveBookingsDrawer.css'
 
-export function ActiveBookingsDrawer({ isOpen, onClose, bookings = [], objects = [] }) {
+export function ActiveBookingsDrawer({ isOpen, onClose, bookings = [], objects = [], onCancelBooking }) {
   if (!isOpen) return null
 
   const activeBookings = bookings
@@ -41,6 +41,13 @@ export function ActiveBookingsDrawer({ isOpen, onClose, bookings = [], objects =
                     {formatDuration(booking.startTime, booking.endTime)}
                   </span>
                 </p>
+                <button
+                  type="button"
+                  className="bookings-drawer__cancel"
+                  onClick={() => onCancelBooking && onCancelBooking(booking.id)}
+                >
+                  Cancel Reservation
+                </button>
               </div>
             ))
           )}

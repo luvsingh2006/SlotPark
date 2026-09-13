@@ -13,6 +13,7 @@ import { VehicleTypeFilterBar } from './components/VehicleTypeFilterBar'
 import { useToast, ToastViewport } from './components/Toast'
 import { BookingModal } from './components/BookingModal'
 import { ParkingPassCard } from './components/ParkingPassCard'
+import { ActiveBookingsDrawer } from './components/ActiveBookingsDrawer'
 import { getUnavailableSlotIds, generateBookingReference } from './utils/bookingHelpers'
 import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
@@ -53,6 +54,7 @@ function App() {
   const { toasts, showToast } = useToast()
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
   const [confirmedBooking, setConfirmedBooking] = useState(null)
+  const [isBookingsDrawerOpen, setIsBookingsDrawerOpen] = useState(false)
 
   const unavailableSlotIds = useMemo(() => {
     if (!bookingWindow) return new Set()
@@ -384,6 +386,11 @@ function App() {
               </button>
             </>
           )}
+          {mode === 'visitor' && (
+            <button type="button" className="btn btn--subtle" onClick={() => setIsBookingsDrawerOpen(true)}>
+              My Bookings ({bookings.filter((b) => b.status === 'active').length})
+            </button>
+          )}
         </div>
       </header>
 
@@ -553,6 +560,13 @@ function App() {
           </div>
         </div>
       )}
+
+      <ActiveBookingsDrawer
+        isOpen={isBookingsDrawerOpen}
+        onClose={() => setIsBookingsDrawerOpen(false)}
+        bookings={bookings}
+        objects={objects}
+      />
 
       <ToastViewport toasts={toasts} />
     </div>

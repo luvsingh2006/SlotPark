@@ -46,6 +46,32 @@
   justify-content: center;
 }
 
+@keyframes mode-fade-in-anim {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Used to wrap admin mode's sibling elements without disrupting the .app
+   flex layout gap between them (display: contents removes this wrapper
+   from the box model, so its children act as direct flex children). */
+.mode-fade-in-wrapper {
+  display: contents;
+}
+
+.mode-fade-in-wrapper > * {
+  animation: mode-fade-in-anim 0.2s ease-out;
+}
+
+.mode-fade-in {
+  animation: mode-fade-in-anim 0.2s ease-out;
+}
+
 @media (max-width: 960px) {
   .app-main {
     grid-template-columns: 1fr;

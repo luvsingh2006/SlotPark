@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ParkingSlot } from './ParkingSlot'
+import { EmptyState } from './EmptyState'
 import { OBJECT_TYPES, isSlotType, DEFAULT_CANVAS_CONFIG } from '../utils/layoutModels'
 import './VisitorCanvasView.css'
 
@@ -60,6 +61,16 @@ export function VisitorCanvasView({
     observer.observe(container)
     return () => observer.disconnect()
   }, [canvasWidth])
+
+  const hasSlots = objects.some((obj) => isSlotType(obj.type))
+  if (!hasSlots) {
+    return (
+      <EmptyState
+        title="No parking spaces yet"
+        subtitle="The admin hasn't designed this parking lot's layout yet. Check back soon."
+      />
+    )
+  }
 
   return (
     <div className="visitor-canvas-container" ref={containerRef}>

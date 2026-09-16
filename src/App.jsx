@@ -432,7 +432,7 @@ function App() {
       </header>
 
       {mode === 'admin' ? (
-        <>
+        <div key="admin" className="mode-fade-in-wrapper">
           <DesignerToolbar
             activeTool={activeTool}
             onSelectTool={setActiveTool}
@@ -513,9 +513,9 @@ function App() {
             onImportLayout={handleImportLayout}
             canvasBounds={{ width: DEFAULT_CANVAS_CONFIG.width, height: DEFAULT_CANVAS_CONFIG.height }}
           />
-        </>
+        </div>
       ) : (
-        <main className="app-main app-main--single">
+        <main key="visitor" className="app-main app-main--single mode-fade-in">
           <section className="designer-canvas-section">
             <div className="panel-header">
               <div>

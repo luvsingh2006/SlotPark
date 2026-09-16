@@ -1,5 +1,6 @@
 import { formatDisplayTime, formatDuration } from '../utils/timeHelpers'
 import { BOOKING_STATUS } from '../utils/bookingHelpers'
+import { EmptyState } from './EmptyState'
 import './ActiveBookingsDrawer.css'
 
 export function ActiveBookingsDrawer({ isOpen, onClose, bookings = [], objects = [], onCancelBooking }) {
@@ -24,7 +25,10 @@ export function ActiveBookingsDrawer({ isOpen, onClose, bookings = [], objects =
 
         <div className="bookings-drawer__list">
           {activeBookings.length === 0 ? (
-            <p className="bookings-drawer__empty">You don't have any active reservations yet.</p>
+            <EmptyState
+              title="No reservations yet"
+              subtitle="Pick a time window and select an available slot to make your first booking."
+            />
           ) : (
             activeBookings.map((booking) => (
               <div key={booking.id} className="bookings-drawer__item">

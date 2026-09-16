@@ -17,6 +17,7 @@ import { ActiveBookingsDrawer } from './components/ActiveBookingsDrawer'
 import { getUnavailableSlotIds, generateBookingReference, BOOKING_STATUS } from './utils/bookingHelpers'
 import { useLocalStorageSync } from './hooks/useLocalStorageSync'
 import { TemplateSelector } from './components/TemplateSelector'
+import { ConfirmDialog } from './components/ConfirmDialog'
 import { getTemplateById } from './utils/layoutTemplates'
 import { DownloadIcon, UploadIcon } from './components/Icons'
 import {
@@ -96,6 +97,15 @@ function App() {
     setObjects(template.objects)
     setSelectedId(null)
     showToast(`Loaded "${template.name}" template.`, 'success')
+  }
+
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false)
+
+  const handleResetLayout = () => {
+    setObjects(INITIAL_LAYOUT_OBJECTS)
+    setSelectedId(null)
+    setIsResetConfirmOpen(false)
+    showToast('Layout reset to default.', 'success')
   }
 
   const handleImportLayout = useCallback((importedData, mode = 'replace') => {
@@ -385,6 +395,14 @@ function App() {
               <button
                 type="button"
                 className="btn btn--subtle"
+                onClick={() => setIsResetConfirmOpen(true)}
+                title="Reset to Default Layout"
+              >
+                Reset Layout
+              </button>
+              <button
+                type="button"
+                className="btn btn--subtle"
                 onClick={() => setIsImportOpen(true)}
                 title="Import Layout from JSON"
               >
@@ -586,6 +604,15 @@ function App() {
         bookings={bookings}
         objects={objects}
         onCancelBooking={handleCancelBooking}
+      />
+
+      <ConfirmDialog
+        isOpen={isResetConfirmOpen}
+        title="Reset Layout to Default?"
+        message="This will discard your current parking lot design and restore the original starting layout. This cannot be undone."
+        confirmLabel="Reset Layout"
+        onConfirm={handleResetLayout}
+        onCancel={() => setIsResetConfirmOpen(false)}
       />
 
       <ToastViewport toasts={toasts} />

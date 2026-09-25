@@ -19,7 +19,9 @@ import { useLocalStorageSync } from './hooks/useLocalStorageSync'
 import { TemplateSelector } from './components/TemplateSelector'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import { getTemplateById } from './utils/layoutTemplates'
-import { DownloadIcon, UploadIcon } from './components/Icons'
+import { DownloadIcon, UploadIcon, UserIcon, LogOutIcon } from './components/Icons'
+import AuthModal from './components/AuthModal'
+import { getCurrentSession, logoutUser, initializeDemoOwnerIfEmpty } from './utils/cryptoAuth'
 import {
   INITIAL_LAYOUT_OBJECTS,
   OBJECT_TYPES,
@@ -34,7 +36,10 @@ import { snapPointToGrid, clampToBounds, DEFAULT_GRID_SIZE } from './utils/gridU
 import './App.css'
 
 function App() {
-  const [mode, setMode] = useState('admin')
+  const [currentUser, setCurrentUser] = useState(() => getCurrentSession())
+  const [mode, setMode] = useState(() => (getCurrentSession() ? 'admin' : 'visitor'))
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [authModalMode, setAuthModalMode] = useState('login')
   const [objects, setObjects] = useLocalStorageSync('parkslot_layout', INITIAL_LAYOUT_OBJECTS)
   const [selectedId, setSelectedId] = useState('slot-a01')
   const [activeTool, setActiveTool] = useState('select')
@@ -59,6 +64,33 @@ function App() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
   const [confirmedBooking, setConfirmedBooking] = useState(null)
   const [isBookingsDrawerOpen, setIsBookingsDrawerOpen] = useState(false)
+
+  useEffect(() => {
+    initializeDemoOwnerIfEmpty()
+  }, [])
+
+  const handleModeChange = (newMode) => {
+    if (newMode === 'admin' && !currentUser) {
+      setAuthModalMode('login')
+      setIsAuthModalOpen(true)
+      showToast('Please sign in as the parking lot owner to enter Designer Mode.', 'info')
+      return
+    }
+    setMode(newMode)
+  }
+
+  const handleLogout = () => {
+    logoutUser()
+    setCurrentUser(null)
+    setMode('visitor')
+    showToast('Signed out of lot owner session.', 'info')
+  }
+
+  const handleAuthSuccess = (user) => {
+    setCurrentUser(user)
+    setMode('admin')
+    showToast(`Signed in as ${user.fullName} (${user.lotName}).`, 'success')
+  }
 
   const unavailableSlotIds = useMemo(() => {
     if (!bookingWindow) return new Set()
@@ -385,10 +417,41 @@ function App() {
       <header className="app-header">
         <div className="app-header__title">
           <h1>SlotPark</h1>
-          <span className="app-header__subtitle">Spatial Layout Designer</span>
+          <span className="app-header__subtitle">
+            {currentUser?.lotName ? `${currentUser.lotName} • Spatial Designer` : 'Spatial Layout Designer'}
+          </span>
         </div>
         <div className="app-header__actions">
-          <ModeSwitcher mode={mode} onChange={setMode} />
+          {currentUser ? (
+            <div className="user-profile-chip" title={`Logged in as ${currentUser.email}`}>
+              <span className="user-profile-chip__badge">Owner</span>
+              <span className="user-profile-chip__name">{currentUser.fullName}</span>
+              <button
+                type="button"
+                className="user-profile-chip__logout-btn"
+                onClick={handleLogout}
+                title="Sign Out"
+                aria-label="Sign Out"
+              >
+                <LogOutIcon size={14} />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="btn btn--subtle"
+              onClick={() => {
+                setAuthModalMode('login')
+                setIsAuthModalOpen(true)
+              }}
+              title="Sign in as Parking Lot Owner"
+            >
+              <UserIcon size={14} />
+              <span>Owner Login</span>
+            </button>
+          )}
+
+          <ModeSwitcher mode={mode} onChange={handleModeChange} />
           {mode === 'admin' && (
             <>
               <TemplateSelector onSelectTemplate={handleLoadTemplate} />
@@ -613,6 +676,14 @@ function App() {
         confirmLabel="Reset Layout"
         onConfirm={handleResetLayout}
         onCancel={() => setIsResetConfirmOpen(false)}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
+        initialMode={authModalMode}
+        currentLotName={currentUser?.lotName || 'Downtown Express Garage'}
       />
 
       <ToastViewport toasts={toasts} />
